@@ -48,7 +48,6 @@ public class SudokuBoard {
             );
         }
 
-        cell.setValue(value);
         rows[cell.getRow()].add(value);
         cols[cell.getCol()].add(value);
         boxes[cell.getBox()].add(value);
