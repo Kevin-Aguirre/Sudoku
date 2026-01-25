@@ -7,7 +7,7 @@ import java.util.Random;
 
 public class SudokuGenerator {
     public enum Difficulty {
-        EASY, MEDIUM, HARD, EXTREME
+        EASY, MEDIUM, HARD
     }
 
     private final Difficulty difficulty;
@@ -64,7 +64,6 @@ public class SudokuGenerator {
             case EASY -> 20;
             case MEDIUM -> 30;
             case HARD -> 40;
-            case EXTREME -> 55;
         };
     }
 

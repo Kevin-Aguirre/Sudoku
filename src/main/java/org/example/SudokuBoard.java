@@ -50,6 +50,16 @@ public class SudokuBoard {
         return grid[row][col];
     }
 
+    public int countEmpty() {
+        int empty = 0;
+        for (int r = 0; r < 9; ++r) {
+            for (int c = 0; c < 9; ++c) {
+                empty += getCell(r, c).getValue() == 0 ? 1 : 0;
+            }
+        }
+        return empty;
+    }
+
     public boolean isAllowed(Cell cell, int value) {
         return !rows[cell.getRow()].contains(value)
                 && !cols[cell.getCol()].contains(value)
