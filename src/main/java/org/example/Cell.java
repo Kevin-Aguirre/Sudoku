@@ -38,7 +38,10 @@ public class Cell {
         this.value = newValue;
     }
 
-    /*LOCATION RELATED METHODS*/
+    public void clearValue() {
+        this.value = 0;
+    }
+
     public int getRow() {
         return this.row;
     }
@@ -53,7 +56,7 @@ public class Cell {
 
 
     private void validateValue(int v) {
-        if (v < 1 || v > 9) {
+        if (v < 0 || v > 9) {
             throw new IllegalArgumentException("Cell value must be 1–9");
         }
         if (fixed) {

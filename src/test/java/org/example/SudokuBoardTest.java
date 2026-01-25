@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SudokuBoardTest {
 
+
     @Test
     void constructor_invalidRowCount() {
         List<List<String>> emptyInput = new ArrayList<>();
