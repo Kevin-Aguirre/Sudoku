@@ -6,6 +6,7 @@ public class Main {
         SudokuGenerator gen = new SudokuGenerator(diff);
         SudokuBoard board = gen.generatePuzzle();
 
+
         System.out.println(board);
     }
 }
