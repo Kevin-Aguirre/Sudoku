@@ -43,6 +43,22 @@ public class SudokuBoard {
         }
     }
 
+    public void initializeCandidates() {
+        for (int row = 0; row < 9; ++row) {
+            for (int col = 0; col < 9; ++col) {
+                Cell cell = grid[row][col];
+                cell.clearCandidates();
+                if (cell.isEmpty()) {
+                    for (int v = 1; v <= 9; ++v) {
+                        if (isAllowed(cell, v)) {
+                            cell.addCandidate(v);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public Cell getCell(int row, int col) {
         if (row < 0 || row > 8 || col < 0 || col > 8) {
             throw new IllegalArgumentException("Row and column must be in range 0–8");
@@ -85,6 +101,7 @@ public class SudokuBoard {
             throw new IllegalStateException("Cannot clear fixed cell");
         }
         setCellValue(cell, 0);
+        initializeCandidates();
     }
 
     public static SudokuBoard emptyBoard() {
@@ -105,7 +122,7 @@ public class SudokuBoard {
                     "Invalid board: conflict at (" + cell.getRow() + "," + cell.getCol() + ")"
             );
         }
-        setCellValue(cell, value);
+        addToTracking(cell, value);
     }
 
     private void setCellValue(Cell cell, int newValue) {
@@ -118,6 +135,27 @@ public class SudokuBoard {
         }
 
         cell.setValue(newValue);
+
+        if (newValue != 0) {
+            updateCandidatesAfterPlacement(cell, newValue);
+        }
+    }
+
+    private void updateCandidatesAfterPlacement(Cell placed, int value) {
+
+        for (int i = 0; i < 9; i++) {
+            grid[placed.getRow()][i].removeCandidate(value);
+            grid[i][placed.getCol()].removeCandidate(value);
+        }
+
+        int br = (placed.getRow() / 3) * 3;
+        int bc = (placed.getCol() / 3) * 3;
+
+        for (int r = br; r < br + 3; r++) {
+            for (int c = bc; c < bc + 3; c++) {
+                grid[r][c].removeCandidate(value);
+            }
+        }
     }
 
     private void addToTracking(Cell cell, int value) {

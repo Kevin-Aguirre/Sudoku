@@ -2,10 +2,15 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class CellTest {
 
+    /*CONSTRUCTOR BASED */
     @Test
     void constructor_validEmptyCell_doesNotThrow() {
         assertDoesNotThrow(() -> new Cell(0, 0, 0));
@@ -29,6 +34,7 @@ class CellTest {
         );
     }
 
+    /* EMPTY LOGIC*/
     @Test
     void isEmpty() {
         Cell emptyCell = new Cell(1, 1, 0);
@@ -78,6 +84,7 @@ class CellTest {
         assertThrows(IllegalArgumentException.class, () -> emptyCell.setValue(51290));
     }
 
+    /* POSITION-BASED */
     @Test
     void getRow() {
         Cell emptyCell = new Cell(1, 1, 0);
@@ -95,5 +102,23 @@ class CellTest {
         Cell emptyCell = new Cell(1, 1, 0);
         assertEquals(0, emptyCell.getBox(), "Cell box should return 0.");
     }
+
+    /* CANDIDATE-BASED */
+    @Test
+    void testCandidates() {
+        Cell emptyCell = new Cell(1, 1, 0);
+        emptyCell.addCandidate(4);
+        emptyCell.addCandidate(7);
+        emptyCell.addCandidate(9);
+        assertEquals(emptyCell.getCandidates(), Set.of(4, 7, 9));
+
+        emptyCell.removeCandidate(7);
+        emptyCell.removeCandidate(9);
+        assertEquals(emptyCell.getCandidates(), Set.of(4));
+
+        emptyCell.clearCandidates();
+        assertEquals(emptyCell.getCandidates(), Set.of());
+    }
+
 
 }

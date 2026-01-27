@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SudokuBoardTest {
 
-
+    /* Constructor-based */
     @Test
     void constructor_invalidRowCount() {
         List<List<String>> emptyInput = new ArrayList<>();
@@ -62,6 +62,31 @@ public class SudokuBoardTest {
         }
 
         assertThrows(IllegalArgumentException.class, () -> new SudokuBoard(duplicateDigitBoard));
+    }
+
+    @Test
+    void testInitializeCandidates() {
+
+    }
+
+    @Test
+    void countEmpty() {
+
+    }
+
+    @Test
+    void testIsAllowed() {
+
+    }
+
+    @Test
+    void testPlaceValue() {
+
+    }
+
+    @Test
+    void testClearValue() {
+
     }
 
 }

@@ -9,6 +9,7 @@ public class Cell {
     private final int box;
     private int value;
     private final boolean fixed;
+    private final Set<Integer> candidates = new HashSet<>();
 
     public Cell(int row, int col, int value) {
         if (row < 0 || row > 8 || col < 0 || col > 8) {
@@ -25,13 +26,36 @@ public class Cell {
         this.fixed = value != 0;
     }
 
+    /* CANDIDATES */
+    public Set<Integer> getCandidates() {
+        return Collections.unmodifiableSet(candidates);
+    }
+
+    public void addCandidate(int candidate) {
+        if (candidate < 1 || candidate > 9) {
+            throw new IllegalArgumentException("Candidate value must be 1–9");
+        }
+        this.candidates.add(candidate);
+    }
+
+    public void removeCandidate(int candidate) {
+        if (candidate < 1 || candidate > 9) {
+            throw new IllegalArgumentException("Candidate value must be 1–9");
+        }
+        this.candidates.remove(candidate);
+    }
+
+    public void clearCandidates() {
+        this.candidates.clear();
+    }
+
+    /* RELATED TO VALUE */
     public boolean isEmpty() {
         return this.value == 0;
     }
     public int getValue() {
         return this.value;
     }
-    public boolean isFixed() { return this.fixed; }
 
     public void setValue(int newValue) {
         validateValue(newValue);
@@ -42,6 +66,7 @@ public class Cell {
         this.value = 0;
     }
 
+    /* RELATED TO LOCATION */
     public int getRow() {
         return this.row;
     }
@@ -54,6 +79,10 @@ public class Cell {
         return this.box;
     }
 
+    /* VALIDATION BASED */
+    public boolean isFixed() {
+        return this.fixed;
+    }
 
     private void validateValue(int v) {
         if (v < 0 || v > 9) {
