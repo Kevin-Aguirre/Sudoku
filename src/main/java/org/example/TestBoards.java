@@ -4,7 +4,10 @@ import java.util.List;
 
 public class TestBoards {
 
-    public static SudokuBoard oneMissing() {
+    /*
+    * Trivial board to test that naked single gets applied
+    * */
+    public static SudokuBoard nakedSingleTest() {
         List<List<String>> input = List.of(
                 List.of("5","3","4","6","7","8","9","1","."),
                 List.of("6","7","2","1","9","5","3","4","8"),
@@ -17,5 +20,22 @@ public class TestBoards {
                 List.of("3","4","5","2","8","6","1","7","9")
         );
         return new SudokuBoard(input);
+    }
+
+    /*
+     * A more difficult board, first hidden single gets applied, then naked singles need to be applied
+     * */
+    public static SudokuBoard hiddenSingleTest() {
+        return new SudokuBoard(List.of(
+                List.of(".", ".", ".", ".", ".", ".", ".", ".", "."),
+                List.of(".", ".", ".", ".", ".", "3", ".", "8", "5"),
+                List.of(".", ".", "1", ".", "2", ".", ".", ".", "."),
+                List.of(".", ".", ".", "5", ".", "7", ".", ".", "."),
+                List.of(".", ".", "4", ".", ".", ".", "1", ".", "."),
+                List.of(".", "9", ".", ".", ".", ".", ".", ".", "."),
+                List.of("5", ".", ".", ".", ".", ".", ".", "7", "3"),
+                List.of(".", ".", "2", ".", "1", ".", ".", ".", "."),
+                List.of(".", ".", ".", ".", "4", ".", ".", ".", "9")
+        ));
     }
 }

@@ -199,4 +199,17 @@ public class SudokuBoard {
         return sb.toString();
     }
 
+    public void printCandidates() {
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                Cell cell = grid[r][c];
+                Set<Integer> candidates = cell.getCandidates();
+                if (!candidates.isEmpty()) {
+                    System.out.println("(" + r + ", " + c + ") -> " + candidates);
+                }
+            }
+        }
+    }
+
+
 }

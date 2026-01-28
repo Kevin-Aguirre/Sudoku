@@ -4,8 +4,14 @@ import java.util.List;
 
 public class SudokuSolver {
 
+    /*
+    *
+    * This must be implemented from most trivial to least.
+    * */
     private final List<LegalMove> moves = List.of(
-            new NakedSingle()
+            new NakedSingle(),
+            new HiddenSingle()
+
     );
 
     public boolean solve(SudokuBoard board) {
