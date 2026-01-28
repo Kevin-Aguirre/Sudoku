@@ -3,6 +3,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+// TODO - make solver track which changes were made
 public class Cell {
     private final int row;
     private final int col;
@@ -31,18 +32,18 @@ public class Cell {
         return Collections.unmodifiableSet(candidates);
     }
 
-    public void addCandidate(int candidate) {
+    public boolean addCandidate(int candidate) {
         if (candidate < 1 || candidate > 9) {
             throw new IllegalArgumentException("Candidate value must be 1–9");
         }
-        this.candidates.add(candidate);
+        return this.candidates.add(candidate);
     }
 
-    public void removeCandidate(int candidate) {
+    public boolean removeCandidate(int candidate) {
         if (candidate < 1 || candidate > 9) {
             throw new IllegalArgumentException("Candidate value must be 1–9");
         }
-        this.candidates.remove(candidate);
+        return this.candidates.remove(candidate);
     }
 
     public void clearCandidates() {
@@ -82,6 +83,20 @@ public class Cell {
     /* VALIDATION BASED */
     public boolean isFixed() {
         return this.fixed;
+    }
+
+    public boolean restrictTo(Set<Integer> allowed) {
+        boolean changed = false;
+
+        // iterate over a copy to avoid concurrent modification
+        for (Integer candidate : new HashSet<>(candidates)) {
+            if (!allowed.contains(candidate)) {
+                candidates.remove(candidate);
+                changed = true;
+            }
+        }
+
+        return changed;
     }
 
     private void validateValue(int v) {
