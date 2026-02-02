@@ -7,23 +7,11 @@ public class HiddenTriple implements LegalMove {
     @Override
     public boolean apply(SudokuBoard board) {
 
-        for (int r = 0; r < 9; r++)
-            if (checkUnit(board, getRow(board, r))) {
-                System.out.println("Applying " + getName());
-                return true;
-            }
-
-        for (int c = 0; c < 9; c++)
-            if (checkUnit(board, getCol(board, c))) {
-                System.out.println("Applying " + getName());
-                return true;
-            }
-
-        for (int b = 0; b < 9; b++)
-            if (checkUnit(board, getBox(board, b))) {
-                System.out.println("Applying " + getName());
-                return true;
-            }
+        for (int unit = 0; unit < 9; unit++) {
+            if (checkUnit(board, board.getRow(unit))) return true;
+            if (checkUnit(board, board.getCol(unit))) return true;
+            if (checkUnit(board, board.getBox(unit))) return true;
+        }
 
         return false;
     }

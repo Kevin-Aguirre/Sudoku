@@ -4,9 +4,6 @@ import java.util.List;
 
 public class TestBoards {
 
-    /*
-    * Trivial board to test that naked single gets applied
-    * */
     public static SudokuBoard nakedSingleTest() {
         List<List<String>> input = List.of(
                 List.of("5","3","4","6","7","8","9","1","."),
@@ -22,9 +19,6 @@ public class TestBoards {
         return new SudokuBoard(input);
     }
 
-    /*
-     * A more difficult board, first hidden single gets applied, then naked singles need to be applied
-     * */
     public static SudokuBoard hiddenSingleTest() {
         return new SudokuBoard(List.of(
                 List.of(".", ".", ".", ".", ".", ".", ".", ".", "."),

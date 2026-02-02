@@ -7,19 +7,15 @@ public class NakedTriple implements LegalMove {
     @Override
     public boolean apply(SudokuBoard board) {
 
-        for (int r = 0; r < 9; r++)
-            if (applyToUnit(getRow(board, r))) return true;
-
-        for (int c = 0; c < 9; c++)
-            if (applyToUnit(getCol(board, c))) return true;
-
-        for (int b = 0; b < 9; b++)
-            if (applyToUnit(getBox(board, b))) return true;
-
+        for (int unit = 0; unit < 9; ++unit) {
+            if (applyToUnit(board.getRow(unit))) return true;
+            if (applyToUnit(board.getCol(unit))) return true;
+            if (applyToUnit(board.getBox(unit))) return true;
+        }
         return false;
     }
 
-    private boolean applyToUnit(List<Cell> cells) {
+    public boolean applyToUnit(List<Cell> cells) {
 
         List<Cell> targets = new ArrayList<>();
         for (Cell c : cells) {
@@ -58,30 +54,6 @@ public class NakedTriple implements LegalMove {
             }
         }
         return false;
-    }
-
-    private List<Cell> getRow(SudokuBoard b, int r) {
-        List<Cell> list = new ArrayList<>();
-        for (int c = 0; c < 9; c++) list.add(b.getCell(r, c));
-        return list;
-    }
-
-    private List<Cell> getCol(SudokuBoard b, int c) {
-        List<Cell> list = new ArrayList<>();
-        for (int r = 0; r < 9; r++) list.add(b.getCell(r, c));
-        return list;
-    }
-
-    private List<Cell> getBox(SudokuBoard b, int box) {
-        List<Cell> list = new ArrayList<>();
-        int sr = (box / 3) * 3;
-        int sc = (box % 3) * 3;
-
-        for (int r = sr; r < sr + 3; r++)
-            for (int c = sc; c < sc + 3; c++)
-                list.add(b.getCell(r, c));
-
-        return list;
     }
 
     @Override

@@ -1,9 +1,6 @@
 package org.example;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class SudokuBoard {
 
@@ -57,6 +54,29 @@ public class SudokuBoard {
                 }
             }
         }
+    }
+
+    public List<Cell> getRow(int r) {
+        List<Cell> row = new ArrayList<>(9);
+        row.addAll(Arrays.asList(grid[r]).subList(0, 9));
+        return row;
+    }
+
+    public List<Cell> getCol(int c) {
+        List<Cell> col = new ArrayList<>(9);
+        for (int r = 0; r < 9; r++) col.add(grid[r][c]);
+        return col;
+    }
+
+    public List<Cell> getBox(int b) {
+        List<Cell> box = new ArrayList<>(9);
+        int br = (b / 3) * 3;
+        int bc = (b % 3) * 3;
+
+        for (int r = br; r < br + 3; r++) {
+            box.addAll(Arrays.asList(grid[r]).subList(bc, bc + 3));
+        }
+        return box;
     }
 
     public Cell getCell(int row, int col) {
@@ -116,6 +136,15 @@ public class SudokuBoard {
         return new SudokuBoard(input);
     }
 
+    public static SudokuBoard buildBoard(String gridStr) {
+        List<List<String>> rows = new ArrayList<>();
+        String[] lines = gridStr.trim().split("\\s+");
+        for (String line : lines) {
+            rows.add(new ArrayList<>(Arrays.asList(line.split(""))));
+        }
+        return new SudokuBoard(rows);
+    }
+
     private void placeInitial(Cell cell, int value) {
         if (!isAllowed(cell, value)) {
             throw new IllegalArgumentException(
@@ -132,6 +161,7 @@ public class SudokuBoard {
 
         if (newValue != 0) {
             addToTracking(cell, newValue);
+            cell.clearCandidates();
         }
 
         cell.setValue(newValue);

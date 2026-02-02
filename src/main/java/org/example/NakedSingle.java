@@ -11,8 +11,7 @@ public class NakedSingle implements LegalMove {
                 if (cell.isEmpty() && cell.getCandidates().size() == 1) {
                     int value = cell.getCandidates().iterator().next();
                     board.placeValue(cell, value);
-                    System.out.println("Applying " + getName());
-                    return true; // exactly one logical move
+                    return true;
                 }
             }
         }
