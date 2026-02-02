@@ -12,6 +12,7 @@ public class SudokuGenerator {
 
     private final Difficulty difficulty;
     private final Random random = new Random();
+    private final SudokuSolutionCounter counter = new SudokuSolutionCounter();
 
     public SudokuGenerator(Difficulty difficulty) {
         this.difficulty = difficulty;
@@ -19,16 +20,12 @@ public class SudokuGenerator {
 
     public SudokuBoard generatePuzzle() {
         SudokuBoard fullBoard = generateFullBoard();
-        int cellsToRemove = getCellsToRemove();
-
-        removeCells(fullBoard, cellsToRemove);
-
+        removeCellsWithUniqueness(fullBoard, getCellsToRemove());
         return fullBoard;
     }
 
     private SudokuBoard generateFullBoard() {
         SudokuBoard board = SudokuBoard.emptyBoard();
-
         if (!fillBoard(board, 0, 0)) {
             throw new IllegalStateException("Failed to generate a full board");
         }
@@ -86,6 +83,41 @@ public class SudokuGenerator {
             Cell cell = sudokuBoard.getCell(row, col);
             if (!cell.isEmpty()) {
                 sudokuBoard.clearValue(cell);
+                removed++;
+            }
+        }
+    }
+
+    private void removeCellsWithUniqueness(SudokuBoard board, int targetRemovals) {
+
+        List<int[]> positions = new ArrayList<>();
+        for (int r = 0; r < 9; r++)
+            for (int c = 0; c < 9; c++)
+                positions.add(new int[]{r, c});
+
+        Collections.shuffle(positions, random);
+
+        int removed = 0;
+
+        for (int[] pos : positions) {
+            if (removed >= targetRemovals) break;
+
+            int r = pos[0];
+            int c = pos[1];
+            Cell cell = board.getCell(r, c);
+
+            if (cell.isEmpty()) continue;
+
+            int backup = cell.getValue();
+            board.clearValue(cell);
+
+            // Count solutions (stop at 2)
+            int solutions = counter.countSolutions(board, 2);
+
+            if (solutions != 1) {
+                // Revert removal
+                board.placeValue(cell, backup);
+            } else {
                 removed++;
             }
         }

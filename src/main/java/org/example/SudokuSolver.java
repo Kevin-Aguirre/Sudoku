@@ -16,7 +16,8 @@ public class SudokuSolver {
             new NakedDouble(),
             new HiddenDouble(),
             new NakedTriple(),
-            new HiddenTriple()
+            new HiddenTriple(),
+            new XWing()
     );
 
     public boolean solve(SudokuBoard board) {

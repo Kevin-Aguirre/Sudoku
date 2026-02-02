@@ -39,7 +39,7 @@ public class HiddenTriple implements LegalMove {
                     cells.add(cell);
                 }
             }
-            if (cells.size() >= 2 && cells.size() <= 3) {
+            if (!cells.isEmpty()) {
                 positions.put(v, cells);
             }
         }
@@ -61,11 +61,18 @@ public class HiddenTriple implements LegalMove {
 
                     if (union.size() == 3) {
                         Set<Integer> allowed = Set.of(v1, v2, v3);
+                        boolean changed = false;
 
                         for (Cell cell : union) {
+                            // restrict candidates to just the triple
                             if (cell.restrictTo(allowed)) {
-                                return true;
+                                changed = true;
                             }
+                        }
+
+                        if (changed) {
+                            System.out.println("Applying " + getName());
+                            return true;
                         }
                     }
                 }
@@ -74,29 +81,4 @@ public class HiddenTriple implements LegalMove {
         return false;
     }
 
-    /* ---------------- Unit helpers ---------------- */
-
-    private List<Cell> getRow(SudokuBoard board, int r) {
-        List<Cell> row = new ArrayList<>(9);
-        for (int c = 0; c < 9; c++) row.add(board.getCell(r, c));
-        return row;
-    }
-
-    private List<Cell> getCol(SudokuBoard board, int c) {
-        List<Cell> col = new ArrayList<>(9);
-        for (int r = 0; r < 9; r++) col.add(board.getCell(r, c));
-        return col;
-    }
-
-    private List<Cell> getBox(SudokuBoard board, int b) {
-        List<Cell> box = new ArrayList<>(9);
-        int br = (b / 3) * 3;
-        int bc = (b % 3) * 3;
-
-        for (int r = br; r < br + 3; r++)
-            for (int c = bc; c < bc + 3; c++)
-                box.add(board.getCell(r, c));
-
-        return box;
-    }
 }

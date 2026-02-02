@@ -38,6 +38,7 @@ public class SudokuBoard {
                 }
             }
         }
+        initializeCandidates();
     }
 
     public void initializeCandidates() {

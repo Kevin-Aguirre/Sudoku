@@ -3,6 +3,20 @@ package org.example;
 import java.util.List;
 
 public class TestBoards {
+    public static SudokuBoard multipleSolutionsTest() {
+        List<List<String>> input = List.of(
+                List.of("5", "3", "6", "1", "4", "8", ".", "7", "."),
+                List.of("2", "7", "8", "5", "6", "9", "1", "4", "3"),
+                List.of("1", "9", "4", "7", "3", "2", "5", "6", "8"),
+                List.of("7", "2", "3", "8", "1", "6", "4", "9", "5"),
+                List.of("8", "4", "5", "3", "9", "7", "6", "2", "1"),
+                List.of("6", "1", "9", "2", "5", "4", "3", "8", "7"),
+                List.of("3", "6", "7", "4", "8", "5", ".", "1", "."),
+                List.of("9", "8", "1", "6", "2", "3", "7", "5", "4"),
+                List.of("4", "5", "2", "9", "7", "1", "8", "3", "6")
+        );
+        return new SudokuBoard(input);
+    }
 
     public static SudokuBoard nakedSingleTest() {
         List<List<String>> input = List.of(
@@ -30,6 +44,20 @@ public class TestBoards {
                 List.of("5", ".", ".", ".", ".", ".", ".", "7", "3"),
                 List.of(".", ".", "2", ".", "1", ".", ".", ".", "."),
                 List.of(".", ".", ".", ".", "4", ".", ".", ".", "9")
+        ));
+    }
+
+    public static SudokuBoard testBoard() {
+        return new SudokuBoard(List.of(
+                List.of("3", "8", "4", ".", ".", "1", "9", ".", "."),
+                List.of("1", "9", "7", ".", "8", "2", ".", "3", "4"),
+                List.of("2", "6", "5", "9", "3", "4", "7", "1", "8"),
+                List.of("8", "5", "1", ".", "2", "9", "4", ".", "3"),
+                List.of(".", "3", "6", "8", "4", "5", "1", ".", "."),
+                List.of(".", "4", "2", "1", ".", "3", ".", "8", "."),
+                List.of("5", "1", "3", "2", "9", "6", "8", "4", "7"),
+                List.of("6", "2", "8", "4", "5", "7", "3", "9", "1"),
+                List.of("4", "7", "9", "3", "1", "8", "2", "5", "6")
         ));
     }
 }

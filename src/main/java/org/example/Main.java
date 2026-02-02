@@ -10,14 +10,43 @@ import java.util.Set;
 *
 *
 * * */
-public class Main {
-    public static void main(String[] args) {
-        SudokuGenerator gen = new SudokuGenerator(SudokuGenerator.Difficulty.HARD);
-        SudokuSolver solver = new SudokuSolver();
-        SudokuBoard board = gen.generatePuzzle();
 
-        while (solver.solveStep(board)) {
-            System.out.println(board);
+public class Main {
+
+    static void main(String[] args) {
+
+        SudokuGenerator generator =
+                new SudokuGenerator(SudokuGenerator.Difficulty.HARD);
+
+        SudokuSolver solver = new SudokuSolver();
+
+        int attempts = 0;
+
+        while (true) {
+            System.out.println('s');
+            attempts++;
+
+            // generate puzzle
+            SudokuBoard original = generator.generatePuzzle();
+
+            // minimal copy for solving
+
+            boolean solved = solver.solve(original);
+
+            if (!solved) {
+                System.out.println("Solver failed after " + attempts + " attempts\n");
+
+                System.out.println("=== Original puzzle ===");
+                System.out.println(original);
+
+                System.out.println("\n=== After solver exhaustion ===");
+
+                System.out.println("\nTechniques used:");
+                solver.getUsedMoves()
+                        .forEach(c -> System.out.println(" - " + c.getSimpleName()));
+
+                break;
+            }
         }
     }
 }
