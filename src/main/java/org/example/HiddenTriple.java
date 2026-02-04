@@ -5,15 +5,22 @@ import java.util.*;
 public class HiddenTriple implements LegalMove {
 
     @Override
-    public boolean apply(SudokuBoard board) {
+    public MoveResult apply(SudokuBoard board) {
 
         for (int unit = 0; unit < 9; unit++) {
-            if (checkUnit(board, board.getRow(unit))) return true;
-            if (checkUnit(board, board.getCol(unit))) return true;
-            if (checkUnit(board, board.getBox(unit))) return true;
+            MoveResult r;
+
+            r = checkUnit(board.getRow(unit));
+            if (r != null) return r;
+
+            r = checkUnit(board.getCol(unit));
+            if (r != null) return r;
+
+            r = checkUnit(board.getBox(unit));
+            if (r != null) return r;
         }
 
-        return false;
+        return null;
     }
 
     @Override
@@ -21,15 +28,11 @@ public class HiddenTriple implements LegalMove {
         return "Hidden Triple";
     }
 
-    @Override
-    public String getMessage() {
-        return "Restricting candidates using hidden triple";
-    }
-
     /* ---------------- Core logic ---------------- */
 
-    private boolean checkUnit(SudokuBoard board, List<Cell> unit) {
+    private MoveResult checkUnit(List<Cell> unit) {
 
+        // value -> cells it can go in
         Map<Integer, List<Cell>> positions = new HashMap<>();
 
         for (int v = 1; v <= 9; v++) {
@@ -39,7 +42,8 @@ public class HiddenTriple implements LegalMove {
                     cells.add(cell);
                 }
             }
-            if (!cells.isEmpty()) {
+            // Hidden triple candidates must appear in 2–3 cells
+            if (cells.size() >= 2 && cells.size() <= 3) {
                 positions.put(v, cells);
             }
         }
@@ -59,26 +63,24 @@ public class HiddenTriple implements LegalMove {
                     union.addAll(positions.get(v2));
                     union.addAll(positions.get(v3));
 
-                    if (union.size() == 3) {
-                        Set<Integer> allowed = Set.of(v1, v2, v3);
-                        boolean changed = false;
+                    // exactly three cells → hidden triple
+                    if (union.size() != 3) continue;
 
-                        for (Cell cell : union) {
-                            // restrict candidates to just the triple
-                            if (cell.restrictTo(allowed)) {
-                                changed = true;
-                            }
-                        }
+                    Set<Integer> allowed = Set.of(v1, v2, v3);
 
-                        if (changed) {
-                            System.out.println("Applying " + getName());
-                            return true;
+                    for (Cell cell : union) {
+                        if (cell.restrictTo(allowed)) {
+                            return MoveResult.restrictedTo(
+                                    getName(),
+                                    cell,
+                                    allowed
+                            );
                         }
                     }
                 }
             }
         }
-        return false;
-    }
 
+        return null;
+    }
 }

@@ -5,17 +5,25 @@ import java.util.*;
 public class NakedTriple implements LegalMove {
 
     @Override
-    public boolean apply(SudokuBoard board) {
+    public MoveResult apply(SudokuBoard board) {
 
-        for (int unit = 0; unit < 9; ++unit) {
-            if (applyToUnit(board.getRow(unit))) return true;
-            if (applyToUnit(board.getCol(unit))) return true;
-            if (applyToUnit(board.getBox(unit))) return true;
+        for (int unit = 0; unit < 9; unit++) {
+            MoveResult r;
+
+            r = applyToUnit(board.getRow(unit));
+            if (r != null) return r;
+
+            r = applyToUnit(board.getCol(unit));
+            if (r != null) return r;
+
+            r = applyToUnit(board.getBox(unit));
+            if (r != null) return r;
         }
-        return false;
+
+        return null;
     }
 
-    public boolean applyToUnit(List<Cell> cells) {
+    public MoveResult applyToUnit(List<Cell> cells) {
 
         List<Cell> targets = new ArrayList<>();
         for (Cell c : cells) {
@@ -34,26 +42,37 @@ public class NakedTriple implements LegalMove {
                     union.addAll(targets.get(j).getCandidates());
                     union.addAll(targets.get(k).getCandidates());
 
-                    if (union.size() == 3) { // naked triple found
-                        for (Cell other : cells) {
-                            if (other.isEmpty() &&
-                                    other != targets.get(i) &&
-                                    other != targets.get(j) &&
-                                    other != targets.get(k)) {
+                    if (union.size() != 3) continue;
+                    List<String> details = new ArrayList<>();
 
-                                for (int v : union) {
-                                    if (other.removeCandidate(v)) {
-                                        System.out.println("Applying " + getName());
-                                        return true;
-                                    }
-                                }
+                    for (Cell other : cells) {
+                        if (!other.isEmpty()) continue;
+                        if (other == targets.get(i)
+                                || other == targets.get(j)
+                                || other == targets.get(k)) continue;
+
+                        for (int v : union) {
+                            if (other.removeCandidate(v)) {
+                                details.add(
+                                        "Removed " + v + " from ("
+                                                + other.getRow() + ","
+                                                + other.getCol() + ")"
+                                );
                             }
                         }
+                    }
+
+                    if (!details.isEmpty()) {
+                        return MoveResult.composite(
+                                getName(),
+                                "Naked triple eliminates candidates",
+                                details
+                        );
                     }
                 }
             }
         }
-        return false;
+        return null;
     }
 
     @Override
@@ -61,8 +80,4 @@ public class NakedTriple implements LegalMove {
         return "Naked Triple";
     }
 
-    @Override
-    public String getMessage() {
-        return "Removing candidates using naked triple";
-    }
 }

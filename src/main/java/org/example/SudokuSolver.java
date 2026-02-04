@@ -1,15 +1,14 @@
 package org.example;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
+import java.util.stream.Collectors;
 
 public class SudokuSolver {
-    private final Set<Class<? extends LegalMove>> usedMoves = new HashSet<>();
 
-    /*
-    * This must be implemented from most trivial to least.
-    * */
+    private final List<MoveResult> appliedMoves = new ArrayList<>();
+
     private final List<LegalMove> moves = List.of(
             new NakedSingle(),
             new HiddenSingle(),
@@ -21,17 +20,18 @@ public class SudokuSolver {
     );
 
     public boolean solve(SudokuBoard board) {
-        usedMoves.clear();
+        appliedMoves.clear();
         board.initializeCandidates();
 
         boolean progress;
         do {
             progress = false;
             for (LegalMove move : moves) {
-                if (move.apply(board)) {
-                    usedMoves.add(move.getClass());
+                MoveResult result = move.apply(board);
+                if (result != null) {
+                    appliedMoves.add(result);
                     progress = true;
-                    break; // restart move list
+                    break; // restart move list after a successful move
                 }
             }
         } while (progress);
@@ -43,15 +43,22 @@ public class SudokuSolver {
         board.initializeCandidates();
 
         for (LegalMove move : moves) {
-            if (move.apply(board)) {
+            MoveResult result = move.apply(board);
+            if (result != null) {
+                appliedMoves.add(result);
                 return true;
             }
         }
         return false;
     }
 
-    public Set<Class<? extends LegalMove>> getUsedMoves() {
-        return Set.copyOf(usedMoves);
+    public List<MoveResult> getAppliedMoves() {
+        return List.copyOf(appliedMoves);
     }
 
+    public Set<Class<? extends MoveResult>> getUsedTechniques() {
+        return appliedMoves.stream()
+                .map(MoveResult::getClass)
+                .collect(Collectors.toSet());
+    }
 }

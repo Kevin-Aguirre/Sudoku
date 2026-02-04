@@ -5,24 +5,17 @@ import java.util.*;
 public class XWing implements LegalMove {
 
     @Override
-    public boolean apply(SudokuBoard board) {
-        // Try row-based X-Wing
+    public MoveResult apply(SudokuBoard board) {
+
         for (int value = 1; value <= 9; value++) {
-            if (xWingRows(board, value)) {
-                System.out.println("Applying " + getName() + " (row-based) on " + value);
-                return true;
-            }
+            MoveResult r = xWingRows(board, value);
+            if (r != null) return r;
+
+            r = xWingCols(board, value);
+            if (r != null) return r;
         }
 
-        // Try column-based X-Wing
-        for (int value = 1; value <= 9; value++) {
-            if (xWingCols(board, value)) {
-                System.out.println("Applying " + getName() + " (col-based) on " + value);
-                return true;
-            }
-        }
-
-        return false;
+        return null;
     }
 
     @Override
@@ -30,105 +23,56 @@ public class XWing implements LegalMove {
         return "X-Wing";
     }
 
-    @Override
-    public String getMessage() {
-        return "Eliminating candidates using X-Wing";
-    }
+    private MoveResult xWing(SudokuBoard board, int value, boolean horizontal) {
+        Map<Integer, Set<Integer>> primaryToSecondary = new HashMap<>();
 
-    /* ================= ROW-BASED ================= */
+        for (int p = 0; p < 9; p++) {
+            Set<Integer> secondaries = new HashSet<>();
+            for (int s = 0; s < 9; s++) {
+                // Swap coordinates based on orientation
+                Cell cell = horizontal ? board.getCell(p, s) : board.getCell(s, p);
 
-    private boolean xWingRows(SudokuBoard board, int value) {
-        Map<Integer, Set<Integer>> rowToCols = new HashMap<>();
-
-        // Step 1: map rows -> columns where value appears
-        for (int r = 0; r < 9; r++) {
-            Set<Integer> cols = new HashSet<>();
-            for (int c = 0; c < 9; c++) {
-                Cell cell = board.getCell(r, c);
                 if (cell.isEmpty() && cell.getCandidates().contains(value)) {
-                    cols.add(c);
+                    secondaries.add(s);
                 }
             }
-            if (cols.size() == 2) {
-                rowToCols.put(r, cols);
+            if (secondaries.size() == 2) {
+                primaryToSecondary.put(p, secondaries);
             }
         }
 
-        List<Integer> rows = new ArrayList<>(rowToCols.keySet());
-        boolean changed = false;
+        List<Integer> primaries = new ArrayList<>(primaryToSecondary.keySet());
 
-        // Find matching row pairs
-        for (int i = 0; i < rows.size(); i++) {
-            for (int j = i + 1; j < rows.size(); j++) {
-                int r1 = rows.get(i);
-                int r2 = rows.get(j);
-                Set<Integer> c1c2 = rowToCols.get(r1);
+        for (int i = 0; i < primaries.size(); i++) {
+            for (int j = i + 1; j < primaries.size(); j++) {
+                int p1 = primaries.get(i);
+                int p2 = primaries.get(j);
+                Set<Integer> secondaries = primaryToSecondary.get(p1);
 
-                if (!c1c2.equals(rowToCols.get(r2))) continue;
+                if (!secondaries.equals(primaryToSecondary.get(p2))) continue;
 
-                // Eliminate candidate from all other rows in those columns
-                for (int c : c1c2) {
-                    for (int r = 0; r < 9; r++) {
-                        if (r == r1 || r == r2) continue;
-                        Cell cell = board.getCell(r, c);
-                        if (cell.isEmpty()) {
-                            changed |= cell.removeCandidate(value);
+                // Eliminate candidates from other "primary" units in these secondary positions
+                for (int s : secondaries) {
+                    for (int p = 0; p < 9; p++) {
+                        if (p == p1 || p == p2) continue;
+
+                        Cell cell = horizontal ? board.getCell(p, s) : board.getCell(s, p);
+
+                        if (cell.isEmpty() && cell.removeCandidate(value)) {
+                            return MoveResult.candidateRemoved(getName(), cell, value);
                         }
                     }
                 }
-
-                if (changed) return true;
             }
         }
-        return false;
+        return null;
     }
 
-    /* ================= COLUMN-BASED ================= */
+    private MoveResult xWingRows(SudokuBoard board, int value) {
+        return xWing(board, value, true);
+    }
 
-    private boolean xWingCols(SudokuBoard board, int value) {
-        Map<Integer, Set<Integer>> colToRows = new HashMap<>();
-
-        // Map columns -> rows where candidate appears
-        for (int c = 0; c < 9; c++) {
-            Set<Integer> rows = new HashSet<>();
-            for (int r = 0; r < 9; r++) {
-                Cell cell = board.getCell(r, c);
-                if (cell.isEmpty() && cell.getCandidates().contains(value)) {
-                    rows.add(r);
-                }
-            }
-            if (rows.size() == 2) {  // candidate appears exactly twice in column
-                colToRows.put(c, rows);
-            }
-        }
-
-        List<Integer> cols = new ArrayList<>(colToRows.keySet());
-        boolean changed = false;
-
-        // Find matching column pairs
-        for (int i = 0; i < cols.size(); i++) {
-            for (int j = i + 1; j < cols.size(); j++) {
-                int c1 = cols.get(i);
-                int c2 = cols.get(j);
-                Set<Integer> r1r2 = colToRows.get(c1);
-
-                if (!r1r2.equals(colToRows.get(c2))) continue;
-
-                // Eliminate candidate from all other columns in those rows
-                for (int r : r1r2) {
-                    for (int c = 0; c < 9; c++) {
-                        if (c == c1 || c == c2) continue;
-                        Cell cell = board.getCell(r, c);
-                        if (cell.isEmpty()) {
-                            changed |= cell.removeCandidate(value);
-                        }
-                    }
-                }
-
-                if (changed) return true;
-            }
-        }
-
-        return false;
+    private MoveResult xWingCols(SudokuBoard board, int value) {
+        return xWing(board, value, false);
     }
 }

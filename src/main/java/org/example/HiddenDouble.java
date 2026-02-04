@@ -5,15 +5,22 @@ import java.util.*;
 public class HiddenDouble implements LegalMove {
 
     @Override
-    public boolean apply(SudokuBoard board) {
+    public MoveResult apply(SudokuBoard board) {
 
         for (int unit = 0; unit < 9; unit++) {
-            if (checkUnit(board, getRow(board, unit))) return true;
-            if (checkUnit(board, getCol(board, unit))) return true;
-            if (checkUnit(board, getBox(board, unit))) return true;
+            MoveResult r;
+
+            r = checkUnit(board.getRow(unit));
+            if (r != null) return r;
+
+            r = checkUnit(board.getCol(unit));
+            if (r != null) return r;
+
+            r = checkUnit(board.getBox(unit));
+            if (r != null) return r;
         }
 
-        return false;
+        return null;
     }
 
     @Override
@@ -21,15 +28,11 @@ public class HiddenDouble implements LegalMove {
         return "Hidden Double";
     }
 
-    @Override
-    public String getMessage() {
-        return "Restricting candidates using hidden double";
-    }
-
     /* ---------------- Core logic ---------------- */
 
-    private boolean checkUnit(SudokuBoard board, List<Cell> unit) {
+    private MoveResult checkUnit(List<Cell> unit) {
 
+        // value -> cells it appears in
         Map<Integer, List<Cell>> positions = new HashMap<>();
 
         for (int v = 1; v <= 9; v++) {
@@ -55,50 +58,26 @@ public class HiddenDouble implements LegalMove {
                 List<Cell> a = positions.get(v1);
                 List<Cell> b = positions.get(v2);
 
-                if (sameCells(a, b)) {
-                    Set<Integer> allowed = Set.of(v1, v2);
+                if (!sameCells(a, b)) continue;
 
-                    boolean changed = false;
-                    for (Cell cell : a) {
-                        if (cell.restrictTo(allowed)) {
-                            changed = true;
-                        }
+                Set<Integer> allowed = Set.of(v1, v2);
+
+                for (Cell cell : a) {
+                    if (cell.restrictTo(allowed)) {
+                        return MoveResult.restrictedTo(
+                                getName(),
+                                cell,
+                                allowed
+                        );
                     }
-                    if (changed) return true;
                 }
             }
         }
 
-        return false;
+        return null;
     }
 
     private boolean sameCells(List<Cell> a, List<Cell> b) {
-        return a.containsAll(b) && b.containsAll(a);
-    }
-
-    /* ---------------- Unit helpers ---------------- */
-
-    private List<Cell> getRow(SudokuBoard board, int r) {
-        List<Cell> row = new ArrayList<>(9);
-        for (int c = 0; c < 9; c++) row.add(board.getCell(r, c));
-        return row;
-    }
-
-    private List<Cell> getCol(SudokuBoard board, int c) {
-        List<Cell> col = new ArrayList<>(9);
-        for (int r = 0; r < 9; r++) col.add(board.getCell(r, c));
-        return col;
-    }
-
-    private List<Cell> getBox(SudokuBoard board, int b) {
-        List<Cell> box = new ArrayList<>(9);
-        int br = (b / 3) * 3;
-        int bc = (b % 3) * 3;
-
-        for (int r = br; r < br + 3; r++)
-            for (int c = bc; c < bc + 3; c++)
-                box.add(board.getCell(r, c));
-
-        return box;
+        return a.size() == b.size() && a.containsAll(b);
     }
 }
