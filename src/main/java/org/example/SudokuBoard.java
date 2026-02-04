@@ -195,6 +195,8 @@ public class SudokuBoard {
         boxes[cell.getBox()].add(value);
     }
 
+
+
     private void removeFromTracking(Cell cell, int value) {
         rows[cell.getRow()].remove(value);
         cols[cell.getCol()].remove(value);

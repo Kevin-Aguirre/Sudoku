@@ -21,6 +21,14 @@ public class SudokuGenerator {
     public SudokuBoard generatePuzzle() {
         SudokuBoard fullBoard = generateFullBoard();
         removeCellsWithUniqueness(fullBoard, getCellsToRemove());
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                Cell cell = fullBoard.getCell(r, c);
+                if (!cell.isEmpty()) {
+                    cell.setFixed(true);
+                }
+            }
+        }
         return fullBoard;
     }
 
@@ -58,7 +66,7 @@ public class SudokuGenerator {
 
     private int getCellsToRemove() {
         return switch (difficulty) {
-            case EASY -> 20;
+            case EASY -> 5;
             case MEDIUM -> 30;
             case HARD -> 40;
             case TEST -> 60;

@@ -9,7 +9,7 @@ public class Cell {
     private final int col;
     private final int box;
     private int value;
-    private final boolean fixed;
+    private boolean fixed;
     private final Set<Integer> candidates = new HashSet<>();
 
     public Cell(int row, int col, int value) {
@@ -32,6 +32,9 @@ public class Cell {
         return Collections.unmodifiableSet(candidates);
     }
 
+    public void setFixed(boolean fixed) {
+        this.fixed = fixed;
+    }
     public boolean addCandidate(int candidate) {
         if (candidate < 1 || candidate > 9) {
             throw new IllegalArgumentException("Candidate value must be 1–9");
