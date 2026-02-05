@@ -253,21 +253,66 @@ public class SudokuGUI extends JFrame {
 
         JButton newGameBtn = new JButton("New Game");
         JButton solveBtn = new JButton("Solve Step");
+        JButton solveAllBtn = new JButton("Solve All");
+        JButton clearMovesBtn = new JButton("Clear Moves");
+        JButton clearLogBtn = new JButton("Clear Log");
 
         newGameBtn.addActionListener(e -> startNewGame((SudokuGenerator.Difficulty) difficultySelector.getSelectedItem()));
+
         solveBtn.addActionListener(e -> {
             if (solver.solveStep(board)) {
                 updateGridFromBoard();
                 logMove(solver.getAppliedMoves().getLast().toString());
+            } else {
+                logMove("No more steps found!");
             }
         });
+
+        solveAllBtn.addActionListener(e -> {
+            if (solver.solve(board)) {
+                board.initializeCandidates(); // Important for the final view
+                updateGridFromBoard();
+                logMove("Puzzle solved by AI!");
+            } else {
+                logMove("Solver could not complete this puzzle.");
+            }
+        });
+
+        clearMovesBtn.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this, "Clear your progress?", "Confirm", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                clearUserEntries();
+            }
+        });
+
+        clearLogBtn.addActionListener(e -> moveLog.setText(""));
 
         panel.add(new JLabel("Difficulty:"));
         panel.add(difficultySelector);
         panel.add(showCandidatesCheckbox);
         panel.add(newGameBtn);
         panel.add(solveBtn);
+        panel.add(solveAllBtn);
+        panel.add(clearMovesBtn);
+        panel.add(clearLogBtn);
         return panel;
+    }
+
+    private void clearUserEntries() {
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                Cell cell = board.getCell(r, c);
+                if (!cell.isFixed()) {
+                    board.clearValue(cell);
+                    // Reset the visual state of the input field
+                    inputFields[r][c].setForeground(Color.BLUE);
+                    inputFields[r][c].setText("");
+                }
+            }
+        }
+        board.initializeCandidates();
+        updateGridFromBoard();
+        logMove("User moves cleared.");
     }
 
     private void startNewGame(SudokuGenerator.Difficulty diff) {
