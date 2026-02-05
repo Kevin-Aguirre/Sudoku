@@ -28,8 +28,6 @@ public class HiddenDouble implements LegalMove {
         return "Hidden Double";
     }
 
-    /* ---------------- Core logic ---------------- */
-
     private MoveResult checkUnit(List<Cell> unit) {
 
         // value -> cells it appears in

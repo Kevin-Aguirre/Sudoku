@@ -51,7 +51,10 @@ public class XWing implements LegalMove {
 
                 if (!secondaries.equals(primaryToSecondary.get(p2))) continue;
 
-                // Eliminate candidates from other "primary" units in these secondary positions
+                // NEW: Track changes and logs
+                boolean changed = false;
+                List<String> logs = new ArrayList<>();
+
                 for (int s : secondaries) {
                     for (int p = 0; p < 9; p++) {
                         if (p == p1 || p == p2) continue;
@@ -59,9 +62,19 @@ public class XWing implements LegalMove {
                         Cell cell = horizontal ? board.getCell(p, s) : board.getCell(s, p);
 
                         if (cell.isEmpty() && cell.removeCandidate(value)) {
-                            return MoveResult.candidateRemoved(getName(), cell, value);
+                            changed = true;
+                            logs.add("Removed " + value + " from (" + cell.getRow() + "," + cell.getCol() + ")");
                         }
                     }
+                }
+
+                // ONLY return if we actually cleaned something up
+                if (changed) {
+                    return MoveResult.composite(
+                            getName(),
+                            "X-Wing on value " + value + " in " + (horizontal ? "rows " : "cols ") + p1 + "," + p2,
+                            logs
+                    );
                 }
             }
         }

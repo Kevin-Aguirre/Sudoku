@@ -53,34 +53,76 @@ public class SudokuGUI extends JFrame {
     }
     private final Color HIGHLIGHT_COLOR = new Color(200, 220, 255); // Light Blue
 
+    // Define the 3 layers of blue
+    private final Color COLOR_CROSSHAIR = new Color(232, 241, 255); // Paleest Blue
+    private final Color COLOR_MATCHING = new Color(190, 210, 255);  // Medium Blue
+    private final Color COLOR_FOCUSED = new Color(150, 180, 255);   // Strongest Blue
+
+    private void highlightContext(int activeRow, int activeCol) {
+        resetHighlights(); // Clear old colors
+
+        JTextField activeField = cells[activeRow][activeCol];
+        String text = activeField.getText().trim();
+        int activeValue = text.isEmpty() ? -1 : Integer.parseInt(text);
+        int activeBox = (activeRow / 3) * 3 + (activeCol / 3);
+
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                int currentBox = (r / 3) * 3 + (c / 3);
+
+                // 1. Layer 1: The Crosshair (Row, Column, and Box)
+                if (r == activeRow || c == activeCol || currentBox == activeBox) {
+                    cells[r][c].setBackground(COLOR_CROSSHAIR);
+                }
+
+                // 2. Layer 2: Matching Values (Darker than crosshair)
+                if (activeValue != -1) {
+                    int cellValue = board.getCell(r, c).getValue();
+                    if (cellValue == activeValue) {
+                        cells[r][c].setBackground(COLOR_MATCHING);
+                    }
+                }
+
+                // 3. Layer 3: The exact cell you clicked (Strongest Blue)
+                if (r == activeRow && c == activeCol) {
+                    cells[r][c].setBackground(COLOR_FOCUSED);
+                }
+            }
+        }
+    }
     private JTextField createCellField(int r, int c) {
         JTextField field = getJTextField(r, c);
         ((AbstractDocument) field.getDocument()).setDocumentFilter(new NumericDocumentFilter());
-        // Existing key listener for input
+
+        // Merge everything into ONE KeyListener
         field.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
+                // 1. Process the math/logic
                 handleInput(field, r, c);
-                highlightValueFromField(field); // Re-highlight if value changed
+
+                // 2. Refresh the visual highlights based on the new input
+                highlightContext(r, c);
             }
         });
 
-        // NEW: Focus listener to highlight other cells with the same value
+        // Handle focus events
         field.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
-                highlightValueFromField(field);
+                // Highlight row/col/box and matching numbers when you click in
+                highlightContext(r, c);
             }
 
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
+                // Clear highlights when you click away
                 resetHighlights();
             }
         });
 
         return field;
     }
-
     private static JTextField getJTextField(int r, int c) {
         JTextField field = new JTextField();
         // ... (Keep existing alignment, font, and border code)
@@ -122,16 +164,12 @@ public class SudokuGUI extends JFrame {
         for (int r = 0; r < 9; r++) {
             for (int c = 0; c < 9; c++) {
                 Cell cell = board.getCell(r, c);
-                // Restore white for empty/user cells, or light gray for fixed cells
-                if (!cells[r][c].isEditable()) {
-                    cells[r][c].setBackground(new Color(240, 240, 240));
+                if (cell.isFixed()) {
+                    cells[r][c].setBackground(new Color(235, 235, 235));
+                } else if (cells[r][c].getForeground().equals(Color.RED)) {
+                    cells[r][c].setBackground(new Color(255, 200, 200));
                 } else {
-                    // If there's an error (red), keep it red, otherwise white
-                    if (cells[r][c].getForeground().equals(Color.RED)) {
-                        cells[r][c].setBackground(new Color(255, 200, 200));
-                    } else {
-                        cells[r][c].setBackground(Color.WHITE);
-                    }
+                    cells[r][c].setBackground(Color.WHITE);
                 }
             }
         }
