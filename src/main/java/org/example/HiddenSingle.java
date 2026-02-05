@@ -1,5 +1,6 @@
 package org.example;
-
+import java.util.HashSet;
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,14 +33,16 @@ public class HiddenSingle implements LegalMove {
     }
 
     private MoveResult checkUnit(SudokuBoard board, List<Cell> unit) {
-
+        Set<Integer> solvedValues = new HashSet<>();
+        for (Cell cell : unit) {
+            if (!cell.isEmpty()) solvedValues.add(cell.getValue());
+        }
         for (int value = 1; value <= 9; value++) {
-
+            if (solvedValues.contains(value)) continue;
             Cell onlySpot = null;
 
             for (Cell cell : unit) {
                 if (cell.isEmpty() && cell.getCandidates().contains(value)) {
-
                     if (onlySpot != null) {
                         onlySpot = null;
                         break; // value appears in multiple places
@@ -50,13 +53,7 @@ public class HiddenSingle implements LegalMove {
 
             if (onlySpot != null) {
                 board.placeValue(onlySpot, value);
-                onlySpot.clearCandidates();
-
-                return MoveResult.placement(
-                        getName(),
-                        onlySpot,
-                        value
-                );
+                return MoveResult.placement(getName(), onlySpot, value);
             }
         }
 

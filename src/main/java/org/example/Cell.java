@@ -1,115 +1,115 @@
-package org.example;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+    package org.example;
+    import java.util.Collections;
+    import java.util.HashSet;
+    import java.util.Set;
 
-// TODO - make solver track which changes were made
-public class Cell {
-    private final int row;
-    private final int col;
-    private final int box;
-    private int value;
-    private boolean fixed;
-    private final Set<Integer> candidates = new HashSet<>();
+    // TODO - make solver track which changes were made
+    public class Cell {
+        private final int row;
+        private final int col;
+        private final int box;
+        private int value;
+        private boolean fixed;
+        private final Set<Integer> candidates = new HashSet<>();
 
-    public Cell(int row, int col, int value) {
-        if (row < 0 || row > 8 || col < 0 || col > 8) {
-            throw new IllegalArgumentException("Row and column must be in range 0–8");
+        public Cell(int row, int col, int value) {
+            if (row < 0 || row > 8 || col < 0 || col > 8) {
+                throw new IllegalArgumentException("Row and column must be in range 0–8");
+            }
+            this.row = row;
+            this.col = col;
+            this.box = (row / 3) * 3 + (col / 3);
+
+            if (value < 0 || value > 9) {
+                throw new IllegalArgumentException("Cell value must be within 0-9, with 0 denoting empty cell.");
+            }
+            this.value = value;
+            this.fixed = value != 0;
         }
-        this.row = row;
-        this.col = col;
-        this.box = (row / 3) * 3 + (col / 3);
 
-        if (value < 0 || value > 9) {
-            throw new IllegalArgumentException("Cell value must be within 0-9, with 0 denoting empty cell.");
+        /* CANDIDATES */
+        public Set<Integer> getCandidates() {
+            return Collections.unmodifiableSet(candidates);
         }
-        this.value = value;
-        this.fixed = value != 0;
-    }
 
-    /* CANDIDATES */
-    public Set<Integer> getCandidates() {
-        return Collections.unmodifiableSet(candidates);
-    }
-
-    public void setFixed(boolean fixed) {
-        this.fixed = fixed;
-    }
-    public boolean addCandidate(int candidate) {
-        if (candidate < 1 || candidate > 9) {
-            throw new IllegalArgumentException("Candidate value must be 1–9");
+        public void setFixed(boolean fixed) {
+            this.fixed = fixed;
         }
-        return this.candidates.add(candidate);
-    }
-
-    public boolean removeCandidate(int candidate) {
-        if (candidate < 1 || candidate > 9) {
-            throw new IllegalArgumentException("Candidate value must be 1–9");
+        public boolean addCandidate(int candidate) {
+            if (candidate < 1 || candidate > 9) {
+                throw new IllegalArgumentException("Candidate value must be 1–9");
+            }
+            return this.candidates.add(candidate);
         }
-        return this.candidates.remove(candidate);
-    }
 
-    public void clearCandidates() {
-        this.candidates.clear();
-    }
+        public boolean removeCandidate(int candidate) {
+            if (candidate < 1 || candidate > 9) {
+                throw new IllegalArgumentException("Candidate value must be 1–9");
+            }
+            return this.candidates.remove(candidate);
+        }
 
-    /* RELATED TO VALUE */
-    public boolean isEmpty() {
-        return this.value == 0;
-    }
-    public int getValue() {
-        return this.value;
-    }
+        public void clearCandidates() {
+            this.candidates.clear();
+        }
 
-    public void setValue(int newValue) {
-        validateValue(newValue);
-        this.value = newValue;
-    }
+        /* RELATED TO VALUE */
+        public boolean isEmpty() {
+            return this.value == 0;
+        }
+        public int getValue() {
+            return this.value;
+        }
 
-    public void clearValue() {
-        this.value = 0;
-    }
+        public void setValue(int newValue) {
+            validateValue(newValue);
+            this.value = newValue;
+        }
 
-    /* RELATED TO LOCATION */
-    public int getRow() {
-        return this.row;
-    }
+        public void clearValue() {
+            this.value = 0;
+        }
 
-    public int getCol() {
-        return this.col;
-    }
+        /* RELATED TO LOCATION */
+        public int getRow() {
+            return this.row;
+        }
 
-    public int getBox() {
-        return this.box;
-    }
+        public int getCol() {
+            return this.col;
+        }
 
-    /* VALIDATION BASED */
-    public boolean isFixed() {
-        return this.fixed;
-    }
+        public int getBox() {
+            return this.box;
+        }
 
-    public boolean restrictTo(Set<Integer> allowed) {
-        boolean changed = false;
+        /* VALIDATION BASED */
+        public boolean isFixed() {
+            return this.fixed;
+        }
 
-        // iterate over a copy to avoid concurrent modification
-        for (Integer candidate : new HashSet<>(candidates)) {
-            if (!allowed.contains(candidate)) {
-                candidates.remove(candidate);
-                changed = true;
+        public boolean restrictTo(Set<Integer> allowed) {
+            boolean changed = false;
+
+            // iterate over a copy to avoid concurrent modification
+            for (Integer candidate : new HashSet<>(candidates)) {
+                if (!allowed.contains(candidate)) {
+                    candidates.remove(candidate);
+                    changed = true;
+                }
+            }
+
+            return changed;
+        }
+
+        private void validateValue(int v) {
+            if (v < 0 || v > 9) {
+                throw new IllegalArgumentException("Cell value must be 1–9");
+            }
+            if (fixed) {
+                throw new IllegalStateException("Cannot modify fixed cell");
             }
         }
 
-        return changed;
+
     }
-
-    private void validateValue(int v) {
-        if (v < 0 || v > 9) {
-            throw new IllegalArgumentException("Cell value must be 1–9");
-        }
-        if (fixed) {
-            throw new IllegalStateException("Cannot modify fixed cell");
-        }
-    }
-
-
-}

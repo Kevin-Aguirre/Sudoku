@@ -40,8 +40,8 @@ public class SudokuSolver {
     }
 
     public boolean solveStep(SudokuBoard board) {
-        board.initializeCandidates();
-
+        System.out.println(board);
+        board.printDetailedGrid();
         for (LegalMove move : moves) {
             MoveResult result = move.apply(board);
             if (result != null) {

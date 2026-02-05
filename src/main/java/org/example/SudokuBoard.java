@@ -244,5 +244,47 @@ public class SudokuBoard {
         }
     }
 
+    public void printDetailedGrid() {
+        StringBuilder sb = new StringBuilder();
+        String horizontalDivider = "+---------+---------+---------+---------+---------+---------+---------+---------+-\n";
+
+        for (int r = 0; r < 9; r++) {
+            sb.append(horizontalDivider);
+
+            // Each Sudoku cell is 3 text-lines high to show candidates 1-3, 4-6, 7-9
+            for (int subRow = 0; subRow < 3; subRow++) {
+                for (int c = 0; c < 9; c++) {
+                    sb.append("|");
+                    Cell cell = grid[r][c];
+                    int val = cell.getValue();
+
+                    if (val != 0) {
+                        // Display set value in the middle row with stars
+                        if (subRow == 1) {
+                            sb.append(" ***").append(val).append("***");
+                        } else {
+                            sb.append("        "); // Empty padding for top/bottom rows of a set cell
+                        }
+                    } else {
+                        // Display candidates for empty cells
+                        sb.append(" ");
+                        for (int i = 1; i <= 3; i++) {
+                            int candidate = (subRow * 3) + i;
+                            if (cell.getCandidates().contains(candidate)) {
+                                sb.append(candidate).append(" ");
+                            } else {
+                                sb.append(". ");
+                            }
+                        }
+                        sb.append(" ");
+                    }
+                }
+                sb.append("|\n");
+            }
+        }
+        sb.append(horizontalDivider);
+        System.out.println(sb.toString());
+    }
+
 
 }
