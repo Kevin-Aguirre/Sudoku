@@ -7,7 +7,7 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-
+import java.util.Set;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -15,32 +15,40 @@ import javax.swing.text.DocumentFilter;
 
 public class SudokuGUI extends JFrame {
     private SudokuBoard board;
-    private final JTextField[][] cells = new JTextField[9][9];
+    private final JPanel[][] cellContainers = new JPanel[9][9];
+    private final JTextField[][] inputFields = new JTextField[9][9];
+    private final JLabel[][] candidateLabels = new JLabel[9][9];
+
     private final SudokuSolver solver = new SudokuSolver();
     private final JTextArea moveLog = new JTextArea();
     private JComboBox<SudokuGenerator.Difficulty> difficultySelector;
+    private JCheckBox showCandidatesCheckbox;
+
+    // UI Constants
+    private final Color COLOR_CROSSHAIR = new Color(232, 241, 255);
+    private final Color COLOR_MATCHING = new Color(190, 210, 255);
+    private final Color COLOR_FOCUSED = new Color(150, 180, 255);
 
     public SudokuGUI() {
-        setTitle("Sudoku Solver - Move Log");
+        setTitle("Sudoku Solver - Pencil Marks");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
         JPanel gridPanel = new JPanel(new GridLayout(9, 9));
         gridPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
         for (int r = 0; r < 9; r++) {
             for (int c = 0; c < 9; c++) {
-                cells[r][c] = createCellField(r, c);
-                gridPanel.add(cells[r][c]);
+                cellContainers[r][c] = createCellComponent(r, c);
+                gridPanel.add(cellContainers[r][c]);
             }
         }
 
         JPanel logPanel = new JPanel(new BorderLayout());
-        logPanel.setPreferredSize(new Dimension(250, 0));
+        logPanel.setPreferredSize(new Dimension(280, 0));
         logPanel.setBorder(new TitledBorder("Solving Steps"));
         moveLog.setEditable(false);
         moveLog.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        moveLog.setLineWrap(true);
-        moveLog.setWrapStyleWord(true);
         logPanel.add(new JScrollPane(moveLog), BorderLayout.CENTER);
 
         add(gridPanel, BorderLayout.CENTER);
@@ -48,114 +56,130 @@ public class SudokuGUI extends JFrame {
         add(createControlPanel(), BorderLayout.SOUTH);
 
         startNewGame(SudokuGenerator.Difficulty.MEDIUM);
-        setSize(900, 600);
+        setSize(1000, 700);
         setLocationRelativeTo(null);
     }
-    private final Color HIGHLIGHT_COLOR = new Color(200, 220, 255); // Light Blue
 
-    // Define the 3 layers of blue
-    private final Color COLOR_CROSSHAIR = new Color(232, 241, 255); // Paleest Blue
-    private final Color COLOR_MATCHING = new Color(190, 210, 255);  // Medium Blue
-    private final Color COLOR_FOCUSED = new Color(150, 180, 255);   // Strongest Blue
+    private JPanel createCellComponent(int r, int c) {
+        JPanel container = new JPanel(new CardLayout());
+
+        // 1. The Input Field
+        JTextField field = new JTextField();
+        field.setHorizontalAlignment(JTextField.CENTER);
+        field.setFont(new Font("SansSerif", Font.BOLD, 22));
+        field.setBorder(null);
+        ((AbstractDocument) field.getDocument()).setDocumentFilter(new NumericDocumentFilter());
+
+        // 2. The Candidate Label
+        JLabel label = new JLabel();
+        label.setHorizontalAlignment(JLabel.CENTER);
+        label.setOpaque(true);
+        label.setBackground(Color.WHITE);
+
+        // --- ADD THIS BLOCK ---
+        // When the user clicks the label (the candidates),
+        // we manually tell the hidden input field to take focus.
+        label.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                // 1. Force the text field to be empty before showing it
+                // This prevents the filter from seeing HTML "garbage"
+                field.setText("");
+
+                // 2. Switch the view
+                CardLayout cl = (CardLayout) container.getLayout();
+                cl.show(container, "INPUT");
+
+                // 3. Request focus
+                field.requestFocusInWindow();
+            }
+        });
+        // ----------------------
+
+        field.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                handleInput(field, r, c);
+                highlightContext(r, c);
+            }
+        });
+
+        field.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                // Switch to input mode so the user can see the cursor/text
+                CardLayout cl = (CardLayout) container.getLayout();
+                cl.show(container, "INPUT");
+                highlightContext(r, c);
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                // 1. If the field has an error (Red), we usually want to keep it on the INPUT card
+                // so the user knows they have a mistake to fix.
+                if (field.getForeground().equals(Color.RED) && !field.getText().isEmpty()) {
+                    // Keep on INPUT card (do nothing)
+                }
+                // 2. If the field is empty and we want to see candidates
+                else if (field.getText().isEmpty() && showCandidatesCheckbox.isSelected()) {
+                    CardLayout cl = (CardLayout) container.getLayout();
+                    cl.show(container, "CANDIDATES");
+                    // Refresh the HTML to ensure candidates are up to date
+                    candidateLabels[r][c].setText(getCandidateHtml(board.getCell(r, c).getCandidates()));
+                }
+
+                resetHighlights();
+            }
+        });
+
+        inputFields[r][c] = field;
+        candidateLabels[r][c] = label;
+
+        container.add(field, "INPUT");
+        container.add(label, "CANDIDATES");
+
+        // Styling the container border
+        int t = (r % 3 == 0) ? 2 : 1;
+        int l = (c % 3 == 0) ? 2 : 1;
+        int b = (r == 8) ? 2 : 1;
+        int rr = (c == 8) ? 2 : 1;
+        container.setBorder(new MatteBorder(t, l, b, rr, Color.BLACK));
+
+        return container;
+    }
+
+    private String getCandidateHtml(Set<Integer> candidates) {
+        if (candidates == null || candidates.isEmpty()) return "";
+        StringBuilder sb = new StringBuilder("<html><table style='font-size:7px; border-collapse:collapse;'>");
+        for (int r = 0; r < 3; r++) {
+            sb.append("<tr>");
+            for (int c = 1; c <= 3; c++) {
+                int val = r * 3 + c;
+                sb.append("<td style='width:12px; height:10px; text-align:center;'>");
+                sb.append(candidates.contains(val) ? val : "&nbsp;");
+                sb.append("</td>");
+            }
+            sb.append("</tr>");
+        }
+        return sb.append("</table></html>").toString();
+    }
 
     private void highlightContext(int activeRow, int activeCol) {
-        resetHighlights(); // Clear old colors
-
-        JTextField activeField = cells[activeRow][activeCol];
-        String text = activeField.getText().trim();
-        int activeValue = text.isEmpty() ? -1 : Integer.parseInt(text);
+        resetHighlights();
+        int activeValue = board.getCell(activeRow, activeCol).getValue();
         int activeBox = (activeRow / 3) * 3 + (activeCol / 3);
 
         for (int r = 0; r < 9; r++) {
             for (int c = 0; c < 9; c++) {
                 int currentBox = (r / 3) * 3 + (c / 3);
 
-                // 1. Layer 1: The Crosshair (Row, Column, and Box)
-                if (r == activeRow || c == activeCol || currentBox == activeBox) {
-                    cells[r][c].setBackground(COLOR_CROSSHAIR);
-                }
+                Color bg = Color.WHITE;
+                if (r == activeRow || c == activeCol || currentBox == activeBox) bg = COLOR_CROSSHAIR;
+                if (activeValue != 0 && board.getCell(r, c).getValue() == activeValue) bg = COLOR_MATCHING;
+                if (r == activeRow && c == activeCol) bg = COLOR_FOCUSED;
 
-                // 2. Layer 2: Matching Values (Darker than crosshair)
-                if (activeValue != -1) {
-                    int cellValue = board.getCell(r, c).getValue();
-                    if (cellValue == activeValue) {
-                        cells[r][c].setBackground(COLOR_MATCHING);
-                    }
-                }
-
-                // 3. Layer 3: The exact cell you clicked (Strongest Blue)
-                if (r == activeRow && c == activeCol) {
-                    cells[r][c].setBackground(COLOR_FOCUSED);
-                }
-            }
-        }
-    }
-    private JTextField createCellField(int r, int c) {
-        JTextField field = getJTextField(r, c);
-        ((AbstractDocument) field.getDocument()).setDocumentFilter(new NumericDocumentFilter());
-
-        // Merge everything into ONE KeyListener
-        field.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                // 1. Process the math/logic
-                handleInput(field, r, c);
-
-                // 2. Refresh the visual highlights based on the new input
-                highlightContext(r, c);
-            }
-        });
-
-        // Handle focus events
-        field.addFocusListener(new java.awt.event.FocusAdapter() {
-            @Override
-            public void focusGained(java.awt.event.FocusEvent e) {
-                // Highlight row/col/box and matching numbers when you click in
-                highlightContext(r, c);
-            }
-
-            @Override
-            public void focusLost(java.awt.event.FocusEvent e) {
-                // Clear highlights when you click away
-                resetHighlights();
-            }
-        });
-
-        return field;
-    }
-    private static JTextField getJTextField(int r, int c) {
-        JTextField field = new JTextField();
-        // ... (Keep existing alignment, font, and border code)
-        field.setHorizontalAlignment(JTextField.CENTER);
-        field.setFont(new Font("SansSerif", Font.BOLD, 20));
-        field.setPreferredSize(new Dimension(50, 50));
-        int top = (r % 3 == 0) ? 2 : 1;
-        int left = (c % 3 == 0) ? 2 : 1;
-        int bottom = (r == 8) ? 2 : 1;
-        int right = (c == 8) ? 2 : 1;
-        field.setBorder(new MatteBorder(top, left, bottom, right, Color.BLACK));
-        return field;
-    }
-
-    private void highlightValueFromField(JTextField field) {
-        resetHighlights(); // Clear old highlights first
-        String text = field.getText().trim();
-        if (!text.isEmpty()) {
-            try {
-                int val = Integer.parseInt(text);
-                applyHighlight(val);
-            } catch (NumberFormatException ignored) {}
-        }
-    }
-
-    private void applyHighlight(int value) {
-        for (int r = 0; r < 9; r++) {
-            for (int c = 0; c < 9; c++) {
-                Cell boardCell = board.getCell(r, c);
-                // Highlight if the cell matches the value
-                if (boardCell.getValue() == value) {
-                    cells[r][c].setBackground(HIGHLIGHT_COLOR);
-                }
+                inputFields[r][c].setBackground(bg);
+                candidateLabels[r][c].setBackground(bg);
             }
         }
     }
@@ -164,12 +188,38 @@ public class SudokuGUI extends JFrame {
         for (int r = 0; r < 9; r++) {
             for (int c = 0; c < 9; c++) {
                 Cell cell = board.getCell(r, c);
-                if (cell.isFixed()) {
-                    cells[r][c].setBackground(new Color(235, 235, 235));
-                } else if (cells[r][c].getForeground().equals(Color.RED)) {
-                    cells[r][c].setBackground(new Color(255, 200, 200));
+                Color bg = cell.isFixed() ? new Color(235, 235, 235) : Color.WHITE;
+                inputFields[r][c].setBackground(bg);
+                candidateLabels[r][c].setBackground(bg);
+            }
+        }
+    }
+
+    private void updateGridFromBoard() {
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                Cell cell = board.getCell(r, c);
+                JTextField field = inputFields[r][c];
+                CardLayout cl = (CardLayout) cellContainers[r][c].getLayout();
+
+                // NEW: Check if the field is currently red (user error)
+                // If it is, don't overwrite it or hide it!
+                if (field.getForeground().equals(Color.RED) && !field.getText().isEmpty()) {
+                    cl.show(cellContainers[r][c], "INPUT");
+                    continue;
+                }
+
+                if (cell.getValue() != 0) {
+                    field.setText(String.valueOf(cell.getValue()));
+                    field.setForeground(cell.isFixed() ? Color.BLACK : Color.BLUE);
+                    cl.show(cellContainers[r][c], "INPUT");
+                } else if (showCandidatesCheckbox.isSelected()) {
+                    candidateLabels[r][c].setText(getCandidateHtml(cell.getCandidates()));
+                    field.setText("");
+                    cl.show(cellContainers[r][c], "CANDIDATES");
                 } else {
-                    cells[r][c].setBackground(Color.WHITE);
+                    field.setText("");
+                    cl.show(cellContainers[r][c], "INPUT");
                 }
             }
         }
@@ -181,67 +231,30 @@ public class SudokuGUI extends JFrame {
 
         if (text.isEmpty()) {
             board.clearValue(cell);
-            field.setBackground(Color.WHITE);
-            return;
-        }
-
-        int val = Integer.parseInt(text);
-
-        if (board.isAllowed(cell, val)) {
-            board.placeValue(cell, val);
-            field.setBackground(Color.WHITE);
-            field.setForeground(Color.BLUE);
-
-            // Debugging: Log how many are left
-            int emptyCount = board.countEmpty();
-            logMove("Cells remaining: " + emptyCount);
-
-            if (emptyCount == 0) {
-                // Delay slightly so the UI paints the last number before the popup
-                SwingUtilities.invokeLater(() -> triggerWin());
-            }
         } else {
-            field.setBackground(new Color(255, 200, 200));
-            field.setForeground(Color.RED);
-            logMove("Conflict at (" + (r + 1) + "," + (c + 1) + ")");
+            int val = Integer.parseInt(text);
+            if (board.isAllowed(cell, val)) {
+                board.placeValue(cell, val);
+            } else {
+                field.setForeground(Color.RED);
+                logMove("Conflict at (" + (r + 1) + "," + (c + 1) + ")");
+            }
         }
-        highlightValueFromField(field);
-    }
-
-    private void triggerWin() {
-        logMove("***************************");
-        logMove("CONGRATS! YOU WIN!");
-        logMove("***************************");
-
-        JOptionPane.showMessageDialog(this,
-                "Congratulations! You've solved the puzzle!",
-                "Victory",
-                JOptionPane.INFORMATION_MESSAGE);
+        board.initializeCandidates(); // Refresh logic
+        updateGridFromBoard();
+        if (board.countEmpty() == 0) triggerWin();
     }
 
     private JPanel createControlPanel() {
         JPanel panel = new JPanel();
         difficultySelector = new JComboBox<>(SudokuGenerator.Difficulty.values());
-        difficultySelector.setSelectedItem(SudokuGenerator.Difficulty.MEDIUM);
+        showCandidatesCheckbox = new JCheckBox("Show Candidates", true);
+        showCandidatesCheckbox.addActionListener(e -> updateGridFromBoard());
 
         JButton newGameBtn = new JButton("New Game");
         JButton solveBtn = new JButton("Solve Step");
-        JButton fullBtn = new JButton("Solve All");
-        JButton clearBoardBtn = new JButton("Clear User Moves");
-
-        clearBoardBtn.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(this,
-                    "Are you sure you want to clear all your moves?",
-                    "Confirm Clear",
-                    JOptionPane.YES_NO_OPTION);
-
-            if (confirm == JOptionPane.YES_OPTION) {
-                clearUserEntries();
-            }
-        });
 
         newGameBtn.addActionListener(e -> startNewGame((SudokuGenerator.Difficulty) difficultySelector.getSelectedItem()));
-
         solveBtn.addActionListener(e -> {
             if (solver.solveStep(board)) {
                 updateGridFromBoard();
@@ -249,103 +262,42 @@ public class SudokuGUI extends JFrame {
             }
         });
 
-        fullBtn.addActionListener(e -> {
-            if (solver.solve(board)) {
-                updateGridFromBoard();
-                logMove("Board Solved!");
-            }
-        });
-
         panel.add(new JLabel("Difficulty:"));
         panel.add(difficultySelector);
+        panel.add(showCandidatesCheckbox);
         panel.add(newGameBtn);
         panel.add(solveBtn);
-        panel.add(fullBtn);
-        panel.add(clearBoardBtn);
         return panel;
     }
 
     private void startNewGame(SudokuGenerator.Difficulty diff) {
         moveLog.setText("");
-        SudokuGenerator gen = new SudokuGenerator(diff);
-        this.board = gen.generatePuzzle();
+        board = new SudokuGenerator(diff).generatePuzzle();
+        board.initializeCandidates();
         updateGridFromBoard();
         logMove("New " + diff + " game started.");
     }
 
-    private void updateGridFromBoard() {
-        for (int r = 0; r < 9; r++) {
-            for (int c = 0; c < 9; c++) {
-                Cell cell = board.getCell(r, c);
-                int val = cell.getValue();
-
-                cells[r][c].setText(val == 0 ? "" : String.valueOf(val));
-
-                // LOGIC: If the board says this cell is "Fixed", disable editing
-                if (cell.isFixed()) {
-                    cells[r][c].setEditable(false);
-                    cells[r][c].setBackground(new Color(235, 235, 235)); // Light gray
-                    cells[r][c].setForeground(Color.BLACK);
-                } else {
-                    cells[r][c].setEditable(true);
-                    cells[r][c].setBackground(Color.WHITE);
-                    cells[r][c].setForeground(Color.BLUE);
-                }
-            }
-        }
-    }
-
     private void logMove(String message) {
         moveLog.append("> " + message + "\n");
-        moveLog.setCaretPosition(moveLog.getDocument().getLength());
     }
 
-    private void clearUserEntries() {
-        for (int r = 0; r < 9; r++) {
-            for (int c = 0; c < 9; c++) {
-                // Check the GUI state - if it's editable, it's a user move
-                if (cells[r][c].isEditable()) {
-                    cells[r][c].setText("");
-                    cells[r][c].setBackground(Color.WHITE);
-
-                    // Also clear it in the underlying logic board
-                    board.clearValue(board.getCell(r, c));
-                }
-            }
-        }
-        logMove("User moves cleared. Original puzzle preserved.");
+    private void triggerWin() {
+        JOptionPane.showMessageDialog(this, "Puzzle Solved!", "Victory", JOptionPane.INFORMATION_MESSAGE);
     }
 }
 
-
-
-// This class filters input to only allow a single digit (1-9)
 class NumericDocumentFilter extends DocumentFilter {
     @Override
-    public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
-            throws BadLocationException {
+    public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+        // If the text being inserted is more than 1 char (like HTML), block it entirely
+        if (text.length() > 1) return;
 
-        // Combine current text with new text to see what the result would be
         String currentText = fb.getDocument().getText(0, fb.getDocument().getLength());
         String nextText = currentText.substring(0, offset) + text + currentText.substring(offset + length);
 
-        // Rule 1: Allow empty string (for deletions)
-        if (nextText.isEmpty()) {
-            super.replace(fb, offset, length, text, attrs);
-            return;
-        }
-
-        // Rule 2: Only allow if the result is exactly one character and is 1-9
-        if (nextText.length() == 1 && nextText.matches("[1-9]")) {
+        if (nextText.isEmpty() || (nextText.length() == 1 && nextText.matches("[1-9]"))) {
             super.replace(fb, offset, length, text, attrs);
         }
-        // Otherwise, do nothing (reject the input)
-    }
-
-    @Override
-    public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
-            throws BadLocationException {
-        // Redirect to replace logic
-        replace(fb, offset, 0, string, attr);
     }
 }
