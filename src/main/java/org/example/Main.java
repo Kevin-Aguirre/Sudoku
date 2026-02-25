@@ -1,10 +1,6 @@
 package org.example;
 
-import javax.swing.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import javax.swing.SwingUtilities;
 
 /* * *
 * Challenge im facing, in order to develop pwd
@@ -19,3 +15,6 @@ public class Main {
         SwingUtilities.invokeLater(() -> new SudokuGUI().setVisible(true));
     }
 }
+
+
+
