@@ -1,0 +1,207 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > NakedDouble</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.example.solver.strategies</a>
+</div>
+
+<h1>Coverage Summary for Class: NakedDouble (org.example.solver.strategies)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">NakedDouble</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    60%
+  </span>
+  <span class="absValue">
+    (3/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    30%
+  </span>
+  <span class="absValue">
+    (9/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    37.8%
+  </span>
+  <span class="absValue">
+    (14/37)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;    package org.example.solver.strategies;
+&nbsp;
+&nbsp;    import org.example.model.Cell;
+&nbsp;    import org.example.solver.LegalMove;
+&nbsp;    import org.example.solver.MoveResult;
+&nbsp;    import org.example.model.SudokuBoard;
+&nbsp;
+&nbsp;    import java.util.*;
+&nbsp;
+<b class="fc">&nbsp;    public class NakedDouble implements LegalMove {</b>
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public MoveResult apply(SudokuBoard board) {
+<b class="fc">&nbsp;            for (int unit = 0; unit &lt; 9; unit++) {</b>
+&nbsp;                MoveResult r;
+&nbsp;
+<b class="fc">&nbsp;                r = checkUnit(board.getRow(unit), &quot;row &quot; + unit);</b>
+<b class="pc">&nbsp;                if (r != null) return r;</b>
+&nbsp;
+<b class="fc">&nbsp;                r = checkUnit(board.getCol(unit), &quot;col &quot; + unit);</b>
+<b class="pc">&nbsp;                if (r != null) return r;</b>
+&nbsp;
+<b class="fc">&nbsp;                r = checkUnit(board.getBox(unit), &quot;box &quot; + unit);</b>
+<b class="pc">&nbsp;                if (r != null) return r;</b>
+&nbsp;
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        private MoveResult checkUnit(List&lt;Cell&gt; unit, String unitName) {
+&nbsp;
+<b class="fc">&nbsp;            Map&lt;Set&lt;Integer&gt;, List&lt;Cell&gt;&gt; pairs = new HashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;            // 1. Collect candidate pairs
+<b class="fc">&nbsp;            for (Cell cell : unit) {</b>
+<b class="pc">&nbsp;                if (!cell.isEmpty()) continue;</b>
+&nbsp;
+<b class="nc">&nbsp;                Set&lt;Integer&gt; cands = cell.getCandidates();</b>
+<b class="nc">&nbsp;                if (cands.size() == 2) {</b>
+<b class="nc">&nbsp;                    pairs.computeIfAbsent(</b>
+<b class="nc">&nbsp;                            Set.copyOf(cands),</b>
+<b class="nc">&nbsp;                            k -&gt; new ArrayList&lt;&gt;()</b>
+<b class="nc">&nbsp;                    ).add(cell);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            // 2. Find naked pair
+<b class="pc">&nbsp;            for (Map.Entry&lt;Set&lt;Integer&gt;, List&lt;Cell&gt;&gt; entry : pairs.entrySet()) {</b>
+<b class="nc">&nbsp;                Set&lt;Integer&gt; pair = entry.getKey();</b>
+<b class="nc">&nbsp;                List&lt;Cell&gt; pairCells = entry.getValue();</b>
+&nbsp;
+<b class="nc">&nbsp;                if (pairCells.size() != 2) continue;</b>
+&nbsp;
+&nbsp;                // 3. Eliminate from others
+<b class="nc">&nbsp;                List&lt;String&gt; eliminations = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;                boolean changed = false;</b>
+&nbsp;
+<b class="nc">&nbsp;                for (Cell cell : unit) {</b>
+<b class="nc">&nbsp;                    if (pairCells.contains(cell)) continue;</b>
+<b class="nc">&nbsp;                    if (!cell.isEmpty()) continue;</b>
+&nbsp;
+<b class="nc">&nbsp;                    for (int value : pair) {</b>
+<b class="nc">&nbsp;                        if (cell.removeCandidate(value)) {</b>
+<b class="nc">&nbsp;                            eliminations.add(</b>
+&nbsp;                                    &quot;removed &quot; + value +
+<b class="nc">&nbsp;                                            &quot; from (&quot; + cell.getRow() + &quot;,&quot; + cell.getCol() + &quot;)&quot;</b>
+&nbsp;                            );
+<b class="nc">&nbsp;                            changed = true;</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                if (changed) {</b>
+<b class="nc">&nbsp;                    return MoveResult.composite(</b>
+<b class="nc">&nbsp;                            getName(),</b>
+&nbsp;                            &quot;Naked pair &quot; + pair + &quot; in &quot; + unitName +
+&nbsp;                                    &quot; eliminates candidates&quot;,
+&nbsp;                            eliminations
+&nbsp;                    );
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;        @Override
+&nbsp;        public String getName() {
+<b class="nc">&nbsp;            return &quot;Naked Double&quot;;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-03-01 14:32</div>
+</div>
+</body>
+</html>

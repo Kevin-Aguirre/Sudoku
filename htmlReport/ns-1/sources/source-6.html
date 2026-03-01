@@ -1,0 +1,227 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MoveResult</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.example</a>
+</div>
+
+<h1>Coverage Summary for Class: MoveResult (org.example)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MoveResult</td>
+<td class="coverageStat">
+  <span class="percent">
+    42.9%
+  </span>
+  <span class="absValue">
+    (3/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    57.9%
+  </span>
+  <span class="absValue">
+    (11/19)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">MoveResult$Type</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    55.6%
+  </span>
+  <span class="absValue">
+    (5/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    65.2%
+  </span>
+  <span class="absValue">
+    (15/23)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package org.example;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;
+&nbsp;public class MoveResult {
+&nbsp;
+<b class="fc">&nbsp;    public enum Type {</b>
+<b class="fc">&nbsp;        PLACEMENT,</b>
+<b class="fc">&nbsp;        CANDIDATE_REMOVAL,</b>
+<b class="fc">&nbsp;        CANDIDATE_RESTRICTION</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private final String technique;
+&nbsp;    private final Type type;
+&nbsp;    private final Cell cell;
+&nbsp;    private final Integer value;          // for placements / removals
+&nbsp;    private final Set&lt;Integer&gt; values;    // for restriction
+&nbsp;    private final String explanation;
+&nbsp;
+&nbsp;    private MoveResult(
+&nbsp;            String technique,
+&nbsp;            Type type,
+&nbsp;            Cell cell,
+&nbsp;            Integer value,
+&nbsp;            Set&lt;Integer&gt; values,
+&nbsp;            String explanation
+<b class="fc">&nbsp;    ) {</b>
+<b class="fc">&nbsp;        this.technique = technique;</b>
+<b class="fc">&nbsp;        this.type = type;</b>
+<b class="fc">&nbsp;        this.cell = cell;</b>
+<b class="fc">&nbsp;        this.value = value;</b>
+<b class="fc">&nbsp;        this.values = values;</b>
+<b class="fc">&nbsp;        this.explanation = explanation;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    public String getTechnique() {
+<b class="fc">&nbsp;        return technique;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /* --------- Factory helpers --------- */
+&nbsp;
+&nbsp;    public static MoveResult placement(String tech, Cell cell, int value) {
+<b class="fc">&nbsp;        return new MoveResult(</b>
+&nbsp;                tech,
+&nbsp;                Type.PLACEMENT,
+&nbsp;                cell,
+<b class="fc">&nbsp;                value,</b>
+&nbsp;                null,
+<b class="fc">&nbsp;                &quot;Placed &quot; + value + &quot; at (&quot; + cell.getRow() + &quot;,&quot; + cell.getCol() + &quot;)&quot;</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    public static MoveResult composite(
+&nbsp;            String technique,
+&nbsp;            String headline,
+&nbsp;            List&lt;String&gt; details
+&nbsp;    ) {
+<b class="nc">&nbsp;        return new MoveResult(</b>
+&nbsp;                technique,
+&nbsp;                Type.CANDIDATE_REMOVAL,
+&nbsp;                null,
+&nbsp;                null,
+&nbsp;                null,
+<b class="nc">&nbsp;                headline + &quot;: &quot; + String.join(&quot;, &quot;, details)</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    public static MoveResult candidateRemoved(String tech, Cell cell, int value) {
+<b class="nc">&nbsp;        return new MoveResult(</b>
+&nbsp;                tech,
+&nbsp;                Type.CANDIDATE_REMOVAL,
+&nbsp;                cell,
+<b class="nc">&nbsp;                value,</b>
+&nbsp;                null,
+<b class="nc">&nbsp;                &quot;Removed &quot; + value + &quot; from (&quot; + cell.getRow() + &quot;,&quot; + cell.getCol() + &quot;)&quot;</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    public static MoveResult restrictedTo(String tech, Cell cell, Set&lt;Integer&gt; allowed) {
+<b class="nc">&nbsp;        return new MoveResult(</b>
+&nbsp;                tech,
+&nbsp;                Type.CANDIDATE_RESTRICTION,
+&nbsp;                cell,
+&nbsp;                null,
+&nbsp;                allowed,
+<b class="nc">&nbsp;                &quot;Restricted (&quot; + cell.getRow() + &quot;,&quot; + cell.getCol() + &quot;) to &quot; + allowed</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String toString() {
+<b class="nc">&nbsp;        return &quot;[&quot; + technique + &quot;] &quot; + explanation;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-28 16:40</div>
+</div>
+</body>
+</html>

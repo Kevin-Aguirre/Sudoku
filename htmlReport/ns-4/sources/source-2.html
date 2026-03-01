@@ -1,0 +1,401 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SudokuBoard</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.example.model</a>
+</div>
+
+<h1>Coverage Summary for Class: SudokuBoard (org.example.model)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SudokuBoard</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    85.7%
+  </span>
+  <span class="absValue">
+    (18/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    62.3%
+  </span>
+  <span class="absValue">
+    (66/106)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    68.3%
+  </span>
+  <span class="absValue">
+    (99/145)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package org.example.model;
+&nbsp;
+&nbsp;import java.util.*;
+&nbsp;
+&nbsp;public class SudokuBoard {
+&nbsp;
+<b class="fc">&nbsp;    private final Cell[][] grid = new Cell[9][9];</b>
+&nbsp;
+<b class="fc">&nbsp;    private final Set&lt;Integer&gt;[] rows = new HashSet[9];</b>
+<b class="fc">&nbsp;    private final Set&lt;Integer&gt;[] cols = new HashSet[9];</b>
+<b class="fc">&nbsp;    private final Set&lt;Integer&gt;[] boxes = new HashSet[9];</b>
+&nbsp;
+<b class="fc">&nbsp;    public SudokuBoard(List&lt;List&lt;String&gt;&gt; input) {</b>
+<b class="fc">&nbsp;        if (input.size() != 9) {</b>
+<b class="fc">&nbsp;            throw new IllegalArgumentException(&quot;Input board must have 9 rows&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        for (int i = 0; i &lt; 9; i++) {</b>
+<b class="fc">&nbsp;            rows[i] = new HashSet&lt;&gt;();</b>
+<b class="fc">&nbsp;            cols[i] = new HashSet&lt;&gt;();</b>
+<b class="fc">&nbsp;            boxes[i] = new HashSet&lt;&gt;();</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        for (int r = 0; r &lt; 9; r++) {</b>
+<b class="fc">&nbsp;            if (input.get(r).size() != 9) {</b>
+<b class="fc">&nbsp;                throw new IllegalArgumentException(&quot;All rows must have 9 cells&quot;);</b>
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            for (int c = 0; c &lt; 9; c++) {</b>
+<b class="fc">&nbsp;                String token = input.get(r).get(c);</b>
+<b class="fc">&nbsp;                int value = token.equals(&quot;.&quot;) ? 0 : parseValue(token);</b>
+&nbsp;
+<b class="fc">&nbsp;                Cell cell = new Cell(r, c, value);</b>
+<b class="fc">&nbsp;                grid[r][c] = cell;</b>
+&nbsp;
+<b class="fc">&nbsp;                if (value != 0) {</b>
+<b class="fc">&nbsp;                    placeInitial(cell, value);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="fc">&nbsp;        initializeCandidates();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void initializeCandidates() {
+<b class="fc">&nbsp;        for (int row = 0; row &lt; 9; ++row) {</b>
+<b class="fc">&nbsp;            for (int col = 0; col &lt; 9; ++col) {</b>
+<b class="fc">&nbsp;                Cell cell = grid[row][col];</b>
+<b class="fc">&nbsp;                cell.clearCandidates();</b>
+<b class="fc">&nbsp;                if (cell.isEmpty()) {</b>
+<b class="fc">&nbsp;                    for (int v = 1; v &lt;= 9; ++v) {</b>
+<b class="fc">&nbsp;                        if (isAllowed(cell, v)) {</b>
+<b class="fc">&nbsp;                            cell.addCandidate(v);</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public List&lt;Cell&gt; getRow(int r) {
+<b class="fc">&nbsp;        List&lt;Cell&gt; row = new ArrayList&lt;&gt;(9);</b>
+<b class="fc">&nbsp;        row.addAll(Arrays.asList(grid[r]).subList(0, 9));</b>
+<b class="fc">&nbsp;        return row;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public List&lt;Cell&gt; getCol(int c) {
+<b class="fc">&nbsp;        List&lt;Cell&gt; col = new ArrayList&lt;&gt;(9);</b>
+<b class="fc">&nbsp;        for (int r = 0; r &lt; 9; r++) col.add(grid[r][c]);</b>
+<b class="fc">&nbsp;        return col;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public List&lt;Cell&gt; getBox(int b) {
+<b class="fc">&nbsp;        List&lt;Cell&gt; box = new ArrayList&lt;&gt;(9);</b>
+<b class="fc">&nbsp;        int br = (b / 3) * 3;</b>
+<b class="fc">&nbsp;        int bc = (b % 3) * 3;</b>
+&nbsp;
+<b class="fc">&nbsp;        for (int r = br; r &lt; br + 3; r++) {</b>
+<b class="fc">&nbsp;            box.addAll(Arrays.asList(grid[r]).subList(bc, bc + 3));</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return box;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Cell getCell(int row, int col) {
+<b class="pc">&nbsp;        if (row &lt; 0 || row &gt; 8 || col &lt; 0 || col &gt; 8) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Row and column must be in range 0–8&quot;);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return grid[row][col];</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int countEmpty() {
+<b class="fc">&nbsp;        int empty = 0;</b>
+<b class="fc">&nbsp;        for (int r = 0; r &lt; 9; ++r) {</b>
+<b class="fc">&nbsp;            for (int c = 0; c &lt; 9; ++c) {</b>
+<b class="fc">&nbsp;                empty += getCell(r, c).getValue() == 0 ? 1 : 0;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="fc">&nbsp;        return empty;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean isAllowed(Cell cell, int value) {
+<b class="fc">&nbsp;        return !rows[cell.getRow()].contains(value)</b>
+<b class="fc">&nbsp;                &amp;&amp; !cols[cell.getCol()].contains(value)</b>
+<b class="fc">&nbsp;                &amp;&amp; !boxes[cell.getBox()].contains(value);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void placeValue(Cell cell, int value) {
+<b class="pc">&nbsp;        if (cell.isFixed()) {</b>
+<b class="nc">&nbsp;            throw new IllegalStateException(&quot;Cannot modify fixed cell&quot;);</b>
+&nbsp;        }
+<b class="pc">&nbsp;        if (value &lt; 1 || value &gt; 9) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Value must be 1–9&quot;);</b>
+&nbsp;        }
+<b class="pc">&nbsp;        if (!isAllowed(cell, value)) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Move violates Sudoku rules&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        setCellValue(cell, value);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void clearValue(Cell cell) {
+<b class="pc">&nbsp;        if (cell.isFixed()) {</b>
+<b class="nc">&nbsp;            throw new IllegalStateException(&quot;Cannot clear fixed cell&quot;);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        setCellValue(cell, 0);</b>
+<b class="fc">&nbsp;        initializeCandidates();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static SudokuBoard emptyBoard() {
+<b class="fc">&nbsp;        List&lt;List&lt;String&gt;&gt; input = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        for (int r = 0; r &lt; 9; r++) {</b>
+<b class="fc">&nbsp;            List&lt;String&gt; row = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;            for (int c = 0; c &lt; 9; c++) {</b>
+<b class="fc">&nbsp;                row.add(&quot;.&quot;);</b>
+&nbsp;            }
+<b class="fc">&nbsp;            input.add(row);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return new SudokuBoard(input);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static SudokuBoard buildBoard(String gridStr) {
+<b class="fc">&nbsp;        List&lt;List&lt;String&gt;&gt; rows = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        String[] lines = gridStr.trim().split(&quot;\\s+&quot;);</b>
+<b class="fc">&nbsp;        for (String line : lines) {</b>
+<b class="fc">&nbsp;            rows.add(new ArrayList&lt;&gt;(Arrays.asList(line.split(&quot;&quot;))));</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return new SudokuBoard(rows);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void placeInitial(Cell cell, int value) {
+<b class="fc">&nbsp;        if (!isAllowed(cell, value)) {</b>
+<b class="fc">&nbsp;            throw new IllegalArgumentException(</b>
+<b class="fc">&nbsp;                    &quot;Invalid board: conflict at (&quot; + cell.getRow() + &quot;,&quot; + cell.getCol() + &quot;)&quot;</b>
+&nbsp;            );
+&nbsp;        }
+<b class="fc">&nbsp;        addToTracking(cell, value);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setCellValue(Cell cell, int newValue) {
+<b class="fc">&nbsp;        if (!cell.isEmpty()) {</b>
+<b class="fc">&nbsp;            removeFromTracking(cell, cell.getValue());</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        if (newValue != 0) {</b>
+<b class="fc">&nbsp;            addToTracking(cell, newValue);</b>
+<b class="fc">&nbsp;            cell.clearCandidates();</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        cell.setValue(newValue);</b>
+&nbsp;
+<b class="fc">&nbsp;        if (newValue != 0) {</b>
+<b class="fc">&nbsp;            updateCandidatesAfterPlacement(cell, newValue);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateCandidatesAfterPlacement(Cell placed, int value) {
+&nbsp;
+<b class="fc">&nbsp;        for (int i = 0; i &lt; 9; i++) {</b>
+<b class="fc">&nbsp;            grid[placed.getRow()][i].removeCandidate(value);</b>
+<b class="fc">&nbsp;            grid[i][placed.getCol()].removeCandidate(value);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        int br = (placed.getRow() / 3) * 3;</b>
+<b class="fc">&nbsp;        int bc = (placed.getCol() / 3) * 3;</b>
+&nbsp;
+<b class="fc">&nbsp;        for (int r = br; r &lt; br + 3; r++) {</b>
+<b class="fc">&nbsp;            for (int c = bc; c &lt; bc + 3; c++) {</b>
+<b class="fc">&nbsp;                grid[r][c].removeCandidate(value);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addToTracking(Cell cell, int value) {
+<b class="fc">&nbsp;        rows[cell.getRow()].add(value);</b>
+<b class="fc">&nbsp;        cols[cell.getCol()].add(value);</b>
+<b class="fc">&nbsp;        boxes[cell.getBox()].add(value);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;    private void removeFromTracking(Cell cell, int value) {
+<b class="fc">&nbsp;        rows[cell.getRow()].remove(value);</b>
+<b class="fc">&nbsp;        cols[cell.getCol()].remove(value);</b>
+<b class="fc">&nbsp;        boxes[cell.getBox()].remove(value);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private int parseValue(String s) {
+<b class="pc">&nbsp;        if (!s.matches(&quot;[1-9]&quot;)) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Invalid symbol: &quot; + s);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return Integer.parseInt(s);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String toString() {
+<b class="nc">&nbsp;        StringBuilder sb = new StringBuilder();</b>
+&nbsp;
+<b class="nc">&nbsp;        for (int r = 0; r &lt; 9; r++) {</b>
+<b class="nc">&nbsp;            if (r % 3 == 0) {</b>
+<b class="nc">&nbsp;                sb.append(&quot;+-------+-------+-------+\n&quot;);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            for (int c = 0; c &lt; 9; c++) {</b>
+<b class="nc">&nbsp;                if (c % 3 == 0) sb.append(&quot;| &quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;                int val = grid[r][c].getValue();</b>
+<b class="nc">&nbsp;                sb.append(val == 0 ? &quot;. &quot; : val + &quot; &quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            sb.append(&quot;|\n&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        sb.append(&quot;+-------+-------+-------+&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        return sb.toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void printCandidates() {
+<b class="nc">&nbsp;        for (int r = 0; r &lt; 9; r++) {</b>
+<b class="nc">&nbsp;            for (int c = 0; c &lt; 9; c++) {</b>
+<b class="nc">&nbsp;                Cell cell = grid[r][c];</b>
+<b class="nc">&nbsp;                Set&lt;Integer&gt; candidates = cell.getCandidates();</b>
+<b class="nc">&nbsp;                if (!candidates.isEmpty()) {</b>
+<b class="nc">&nbsp;                    System.out.println(&quot;(&quot; + r + &quot;, &quot; + c + &quot;) -&gt; &quot; + candidates);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void printDetailedGrid() {
+<b class="nc">&nbsp;        StringBuilder sb = new StringBuilder();</b>
+<b class="nc">&nbsp;        String horizontalDivider = &quot;+---------+---------+---------+---------+---------+---------+---------+---------+-\n&quot;;</b>
+&nbsp;
+<b class="nc">&nbsp;        for (int r = 0; r &lt; 9; r++) {</b>
+<b class="nc">&nbsp;            sb.append(horizontalDivider);</b>
+&nbsp;
+<b class="nc">&nbsp;            for (int subRow = 0; subRow &lt; 3; subRow++) {</b>
+<b class="nc">&nbsp;                for (int c = 0; c &lt; 9; c++) {</b>
+<b class="nc">&nbsp;                    sb.append(&quot;|&quot;);</b>
+<b class="nc">&nbsp;                    Cell cell = grid[r][c];</b>
+<b class="nc">&nbsp;                    int val = cell.getValue();</b>
+&nbsp;
+<b class="nc">&nbsp;                    if (val != 0) {</b>
+<b class="nc">&nbsp;                        if (subRow == 1) {</b>
+<b class="nc">&nbsp;                            sb.append(&quot; ***&quot;).append(val).append(&quot;***&quot;);</b>
+&nbsp;                        } else {
+<b class="nc">&nbsp;                            sb.append(&quot;        &quot;);</b>
+&nbsp;                        }
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        sb.append(&quot; &quot;);</b>
+<b class="nc">&nbsp;                        for (int i = 1; i &lt;= 3; i++) {</b>
+<b class="nc">&nbsp;                            int candidate = (subRow * 3) + i;</b>
+<b class="nc">&nbsp;                            if (cell.getCandidates().contains(candidate)) {</b>
+<b class="nc">&nbsp;                                sb.append(candidate).append(&quot; &quot;);</b>
+&nbsp;                            } else {
+<b class="nc">&nbsp;                                sb.append(&quot;. &quot;);</b>
+&nbsp;                            }
+&nbsp;                        }
+<b class="nc">&nbsp;                        sb.append(&quot; &quot;);</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                sb.append(&quot;|\n&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        sb.append(horizontalDivider);</b>
+<b class="nc">&nbsp;        System.out.println(sb.toString());</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-03-01 14:32</div>
+</div>
+</body>
+</html>
