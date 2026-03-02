@@ -33,11 +33,11 @@ public class Cell {
     public void setFixed(boolean fixed) {
         this.fixed = fixed;
     }
-    public boolean addCandidate(int candidate) {
+    public void addCandidate(int candidate) {
         if (candidate < 1 || candidate > 9) {
             throw new IllegalArgumentException("Candidate value must be 1–9");
         }
-        return this.candidates.add(candidate);
+        this.candidates.add(candidate);
     }
 
     public boolean removeCandidate(int candidate) {

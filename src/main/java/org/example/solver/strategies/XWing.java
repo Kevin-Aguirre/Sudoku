@@ -56,7 +56,6 @@ public class XWing implements LegalMove {
 
                 if (!secondaries.equals(primaryToSecondary.get(p2))) continue;
 
-                // NEW: Track changes and logs
                 boolean changed = false;
                 List<String> logs = new ArrayList<>();
 
@@ -73,7 +72,6 @@ public class XWing implements LegalMove {
                     }
                 }
 
-                // ONLY return if we actually cleaned something up
                 if (changed) {
                     return MoveResult.composite(
                             getName(),
@@ -89,7 +87,6 @@ public class XWing implements LegalMove {
     private MoveResult xWingRows(SudokuBoard board, int value) {
         return xWing(board, value, true);
     }
-
     private MoveResult xWingCols(SudokuBoard board, int value) {
         return xWing(board, value, false);
     }

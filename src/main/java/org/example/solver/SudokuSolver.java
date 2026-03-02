@@ -59,9 +59,4 @@ public class SudokuSolver {
         return List.copyOf(appliedMoves);
     }
 
-    public Set<Class<? extends MoveResult>> getUsedTechniques() {
-        return appliedMoves.stream()
-                .map(MoveResult::getClass)
-                .collect(Collectors.toSet());
-    }
 }

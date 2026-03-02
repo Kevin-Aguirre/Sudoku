@@ -35,7 +35,6 @@ public class HiddenDouble implements LegalMove {
 
     private MoveResult checkUnit(List<Cell> unit) {
 
-        // value -> cells it appears in
         Map<Integer, List<Cell>> positions = new HashMap<>();
 
         for (int v = 1; v <= 9; v++) {

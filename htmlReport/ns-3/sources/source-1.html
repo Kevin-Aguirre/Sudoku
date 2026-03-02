@@ -67,7 +67,7 @@ Current scope:     <a href="../../index.html">all classes</a>
     0%
   </span>
   <span class="absValue">
-    (0/8)
+    (0/4)
   </span>
 </td>
 <td class="coverageStat">
@@ -75,7 +75,7 @@ Current scope:     <a href="../../index.html">all classes</a>
     0%
   </span>
   <span class="absValue">
-    (0/6)
+    (0/5)
   </span>
 </td>
 </tr>
@@ -118,13 +118,12 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    private JComboBox&lt;SudokuGenerator.Difficulty&gt; difficultySelector;
 &nbsp;    private JCheckBox showCandidatesCheckbox;
 &nbsp;
-&nbsp;    // UI Constants
 &nbsp;    private final Color COLOR_CROSSHAIR = new Color(232, 241, 255);
 &nbsp;    private final Color COLOR_MATCHING = new Color(190, 210, 255);
 &nbsp;    private final Color COLOR_FOCUSED = new Color(150, 180, 255);
 &nbsp;
 &nbsp;    public SudokuGUI() {
-&nbsp;        setTitle(&quot;Sudoku Solver - Pencil Marks&quot;);
+&nbsp;        setTitle(&quot;Sudoku&quot;);
 &nbsp;        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 &nbsp;        setLayout(new BorderLayout());
 &nbsp;
@@ -157,38 +156,28 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    private JPanel createCellComponent(int r, int c) {
 &nbsp;        JPanel container = new JPanel(new CardLayout());
 &nbsp;
-&nbsp;        // 1. The Input Field
 &nbsp;        JTextField field = new JTextField();
 &nbsp;        field.setHorizontalAlignment(JTextField.CENTER);
 &nbsp;        field.setFont(new Font(&quot;SansSerif&quot;, Font.BOLD, 22));
 &nbsp;        field.setBorder(null);
 &nbsp;        ((AbstractDocument) field.getDocument()).setDocumentFilter(new NumericDocumentFilter());
 &nbsp;
-&nbsp;        // 2. The Candidate Label
 &nbsp;        JLabel label = new JLabel();
 &nbsp;        label.setHorizontalAlignment(JLabel.CENTER);
 &nbsp;        label.setOpaque(true);
 &nbsp;        label.setBackground(Color.WHITE);
 &nbsp;
-&nbsp;        // --- ADD THIS BLOCK ---
-&nbsp;        // When the user clicks the label (the candidates),
-&nbsp;        // we manually tell the hidden input field to take focus.
 &nbsp;        label.addMouseListener(new java.awt.event.MouseAdapter() {
 &nbsp;            @Override
 &nbsp;            public void mousePressed(java.awt.event.MouseEvent e) {
-&nbsp;                // 1. Force the text field to be empty before showing it
-&nbsp;                // This prevents the filter from seeing HTML &quot;garbage&quot;
 &nbsp;                field.setText(&quot;&quot;);
 &nbsp;
-&nbsp;                // 2. Switch the view
 &nbsp;                CardLayout cl = (CardLayout) container.getLayout();
 &nbsp;                cl.show(container, &quot;INPUT&quot;);
 &nbsp;
-&nbsp;                // 3. Request focus
 &nbsp;                field.requestFocusInWindow();
 &nbsp;            }
 &nbsp;        });
-&nbsp;        // ----------------------
 &nbsp;
 &nbsp;        field.addKeyListener(new KeyAdapter() {
 &nbsp;            @Override
@@ -201,7 +190,6 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;        field.addFocusListener(new java.awt.event.FocusAdapter() {
 &nbsp;            @Override
 &nbsp;            public void focusGained(java.awt.event.FocusEvent e) {
-&nbsp;                // Switch to input mode so the user can see the cursor/text
 &nbsp;                CardLayout cl = (CardLayout) container.getLayout();
 &nbsp;                cl.show(container, &quot;INPUT&quot;);
 &nbsp;                highlightContext(r, c);
@@ -209,16 +197,12 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;
 &nbsp;            @Override
 &nbsp;            public void focusLost(java.awt.event.FocusEvent e) {
-&nbsp;                // 1. If the field has an error (Red), we usually want to keep it on the INPUT card
-&nbsp;                // so the user knows they have a mistake to fix.
 &nbsp;                if (field.getForeground().equals(Color.RED) &amp;&amp; !field.getText().isEmpty()) {
-&nbsp;                    // Keep on INPUT card (do nothing)
 &nbsp;                }
-&nbsp;                // 2. If the field is empty and we want to see candidates
+&nbsp;
 &nbsp;                else if (field.getText().isEmpty() &amp;&amp; showCandidatesCheckbox.isSelected()) {
 &nbsp;                    CardLayout cl = (CardLayout) container.getLayout();
 &nbsp;                    cl.show(container, &quot;CANDIDATES&quot;);
-&nbsp;                    // Refresh the HTML to ensure candidates are up to date
 &nbsp;                    candidateLabels[r][c].setText(getCandidateHtml(board.getCell(r, c).getCandidates()));
 &nbsp;                }
 &nbsp;
@@ -232,7 +216,6 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;        container.add(field, &quot;INPUT&quot;);
 &nbsp;        container.add(label, &quot;CANDIDATES&quot;);
 &nbsp;
-&nbsp;        // Styling the container border
 &nbsp;        int t = (r % 3 == 0) ? 2 : 1;
 &nbsp;        int l = (c % 3 == 0) ? 2 : 1;
 &nbsp;        int b = (r == 8) ? 2 : 1;
@@ -296,8 +279,6 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;                JTextField field = inputFields[r][c];
 &nbsp;                CardLayout cl = (CardLayout) cellContainers[r][c].getLayout();
 &nbsp;
-&nbsp;                // NEW: Check if the field is currently red (user error)
-&nbsp;                // If it is, don&#39;t overwrite it or hide it!
 &nbsp;                if (field.getForeground().equals(Color.RED) &amp;&amp; !field.getText().isEmpty()) {
 &nbsp;                    cl.show(cellContainers[r][c], &quot;INPUT&quot;);
 &nbsp;                    continue;
@@ -323,22 +304,57 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;        String text = field.getText().trim();
 &nbsp;        Cell cell = board.getCell(r, c);
 &nbsp;
+&nbsp;        board.clearValue(cell);
+&nbsp;        field.setForeground(Color.BLUE);
+&nbsp;
 &nbsp;        if (text.isEmpty()) {
-&nbsp;            board.clearValue(cell);
+&nbsp;
 &nbsp;        } else {
-&nbsp;            int val = Integer.parseInt(text);
-&nbsp;            if (board.isAllowed(cell, val)) {
-&nbsp;                board.placeValue(cell, val);
-&nbsp;            } else {
-&nbsp;                field.setForeground(Color.RED);
-&nbsp;                logMove(&quot;Conflict at (&quot; + (r + 1) + &quot;,&quot; + (c + 1) + &quot;)&quot;);
+&nbsp;            try {
+&nbsp;                int val = Integer.parseInt(text);
+&nbsp;
+&nbsp;                if (board.isAllowed(cell, val)) {
+&nbsp;                    board.placeValue(cell, val);
+&nbsp;                    field.setForeground(Color.BLUE);
+&nbsp;                } else {
+&nbsp;                    field.setForeground(Color.RED);
+&nbsp;                }
+&nbsp;            } catch (NumberFormatException e) {
+&nbsp;                field.setText(&quot;&quot;);
 &nbsp;            }
 &nbsp;        }
-&nbsp;        board.initializeCandidates(); // Refresh logic
-&nbsp;        updateGridFromBoard();
-&nbsp;        if (board.countEmpty() == 0) triggerWin();
-&nbsp;    }
 &nbsp;
+&nbsp;        board.initializeCandidates();
+&nbsp;
+&nbsp;        updateGridFromBoardExcept(r, c);
+&nbsp;
+&nbsp;        if (board.countEmpty() == 0) {
+&nbsp;            triggerWin();
+&nbsp;        }
+&nbsp;    };
+&nbsp;    private void updateGridFromBoardExcept(int excludeR, int excludeC) {
+&nbsp;        for (int r = 0; r &lt; 9; r++) {
+&nbsp;            for (int c = 0; c &lt; 9; c++) {
+&nbsp;                if (r == excludeR &amp;&amp; c == excludeC) continue; // Skip the active cell
+&nbsp;
+&nbsp;                Cell cell = board.getCell(r, c);
+&nbsp;                JTextField field = inputFields[r][c];
+&nbsp;                CardLayout cl = (CardLayout) cellContainers[r][c].getLayout();
+&nbsp;
+&nbsp;                if (cell.getValue() != 0) {
+&nbsp;                    field.setText(String.valueOf(cell.getValue()));
+&nbsp;                    field.setForeground(cell.isFixed() ? Color.BLACK : Color.BLUE);
+&nbsp;                    cl.show(cellContainers[r][c], &quot;INPUT&quot;);
+&nbsp;                } else if (showCandidatesCheckbox.isSelected()) {
+&nbsp;                    candidateLabels[r][c].setText(getCandidateHtml(cell.getCandidates()));
+&nbsp;                    cl.show(cellContainers[r][c], &quot;CANDIDATES&quot;);
+&nbsp;                } else {
+&nbsp;                    field.setText(&quot;&quot;);
+&nbsp;                    cl.show(cellContainers[r][c], &quot;INPUT&quot;);
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
 &nbsp;    private JPanel createControlPanel() {
 &nbsp;        JPanel panel = new JPanel();
 &nbsp;        difficultySelector = new JComboBox&lt;&gt;(SudokuGenerator.Difficulty.values());
@@ -422,6 +438,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    }
 &nbsp;
 &nbsp;    private void triggerWin() {
+&nbsp;        logMove(&quot;****** YOU WIN! ******&quot;);
 &nbsp;        JOptionPane.showMessageDialog(this, &quot;Puzzle Solved!&quot;, &quot;Victory&quot;, JOptionPane.INFORMATION_MESSAGE);
 &nbsp;    }
 &nbsp;}
@@ -429,13 +446,9 @@ Current scope:     <a href="../../index.html">all classes</a>
 <b class="nc">&nbsp;class NumericDocumentFilter extends DocumentFilter {</b>
 &nbsp;    @Override
 &nbsp;    public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
-&nbsp;        // If the text being inserted is more than 1 char (like HTML), block it entirely
-<b class="nc">&nbsp;        if (text.length() &gt; 1) return;</b>
-&nbsp;
-<b class="nc">&nbsp;        String currentText = fb.getDocument().getText(0, fb.getDocument().getLength());</b>
-<b class="nc">&nbsp;        String nextText = currentText.substring(0, offset) + text + currentText.substring(offset + length);</b>
-&nbsp;
-<b class="nc">&nbsp;        if (nextText.isEmpty() || (nextText.length() == 1 &amp;&amp; nextText.matches(&quot;[1-9]&quot;))) {</b>
+<b class="nc">&nbsp;        if (text.matches(&quot;[1-9]&quot;)) {</b>
+<b class="nc">&nbsp;            super.replace(fb, 0, fb.getDocument().getLength(), text, attrs);</b>
+<b class="nc">&nbsp;        } else if (text.isEmpty()) {</b>
 <b class="nc">&nbsp;            super.replace(fb, offset, length, text, attrs);</b>
 &nbsp;        }
 &nbsp;    }
@@ -463,7 +476,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2026-03-01 14:32</div>
+    <div style="float:right;">generated on 2026-03-01 15:24</div>
 </div>
 </body>
 </html>

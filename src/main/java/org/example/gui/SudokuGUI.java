@@ -14,9 +14,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Set;
 import javax.swing.text.AbstractDocument;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DocumentFilter;
 
 public class SudokuGUI extends JFrame {
     private SudokuBoard board;
@@ -73,22 +70,7 @@ public class SudokuGUI extends JFrame {
         field.setBorder(null);
         ((AbstractDocument) field.getDocument()).setDocumentFilter(new NumericDocumentFilter());
 
-        JLabel label = new JLabel();
-        label.setHorizontalAlignment(JLabel.CENTER);
-        label.setOpaque(true);
-        label.setBackground(Color.WHITE);
-
-        label.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mousePressed(java.awt.event.MouseEvent e) {
-                field.setText("");
-
-                CardLayout cl = (CardLayout) container.getLayout();
-                cl.show(container, "INPUT");
-
-                field.requestFocusInWindow();
-            }
-        });
+        JLabel label = getjLabel(field, container);
 
         field.addKeyListener(new KeyAdapter() {
             @Override
@@ -134,6 +116,26 @@ public class SudokuGUI extends JFrame {
         container.setBorder(new MatteBorder(t, l, b, rr, Color.BLACK));
 
         return container;
+    }
+
+    private static JLabel getjLabel(JTextField field, JPanel container) {
+        JLabel label = new JLabel();
+        label.setHorizontalAlignment(JLabel.CENTER);
+        label.setOpaque(true);
+        label.setBackground(Color.WHITE);
+
+        label.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                field.setText("");
+
+                CardLayout cl = (CardLayout) container.getLayout();
+                cl.show(container, "INPUT");
+
+                field.requestFocusInWindow();
+            }
+        });
+        return label;
     }
 
     private String getCandidateHtml(Set<Integer> candidates) {
@@ -212,9 +214,11 @@ public class SudokuGUI extends JFrame {
     }
 
     private void handleInput(JTextField field, int r, int c) {
-        String text = field.getText().trim();
         Cell cell = board.getCell(r, c);
-
+        if (cell.isFixed()) {
+            return;
+        }
+        String text = field.getText().trim();
         board.clearValue(cell);
         field.setForeground(Color.BLUE);
 
@@ -354,13 +358,3 @@ public class SudokuGUI extends JFrame {
     }
 }
 
-class NumericDocumentFilter extends DocumentFilter {
-    @Override
-    public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
-        if (text.matches("[1-9]")) {
-            super.replace(fb, 0, fb.getDocument().getLength(), text, attrs);
-        } else if (text.isEmpty()) {
-            super.replace(fb, offset, length, text, attrs);
-        }
-    }
-}

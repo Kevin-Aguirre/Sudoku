@@ -32,7 +32,6 @@
 
             Map<Set<Integer>, List<Cell>> pairs = new HashMap<>();
 
-            // 1. Collect candidate pairs
             for (Cell cell : unit) {
                 if (!cell.isEmpty()) continue;
 
@@ -45,14 +44,12 @@
                 }
             }
 
-            // 2. Find naked pair
             for (Map.Entry<Set<Integer>, List<Cell>> entry : pairs.entrySet()) {
                 Set<Integer> pair = entry.getKey();
                 List<Cell> pairCells = entry.getValue();
 
                 if (pairCells.size() != 2) continue;
 
-                // 3. Eliminate from others
                 List<String> eliminations = new ArrayList<>();
                 boolean changed = false;
 

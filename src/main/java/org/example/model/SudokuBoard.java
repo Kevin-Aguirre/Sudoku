@@ -10,6 +10,21 @@ public class SudokuBoard {
     private final Set<Integer>[] cols = new HashSet[9];
     private final Set<Integer>[] boxes = new HashSet[9];
 
+    public SudokuBoard() {
+        for (int i = 0; i < 9; i++) {
+            rows[i] = new HashSet<>();
+            cols[i] = new HashSet<>();
+            boxes[i] = new HashSet<>();
+        }
+
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                grid[r][c] = new Cell(r, c, 0);
+            }
+        }
+        initializeCandidates();
+    }
+
     public SudokuBoard(List<List<String>> input) {
         if (input.size() != 9) {
             throw new IllegalArgumentException("Input board must have 9 rows");
@@ -194,8 +209,6 @@ public class SudokuBoard {
         cols[cell.getCol()].add(value);
         boxes[cell.getBox()].add(value);
     }
-
-
 
     private void removeFromTracking(Cell cell, int value) {
         rows[cell.getRow()].remove(value);

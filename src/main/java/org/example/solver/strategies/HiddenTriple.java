@@ -33,11 +33,8 @@ public class HiddenTriple implements LegalMove {
         return "Hidden Triple";
     }
 
-    /* ---------------- Core logic ---------------- */
-
     private MoveResult checkUnit(List<Cell> unit) {
 
-        // value -> cells it can go in
         Map<Integer, List<Cell>> positions = new HashMap<>();
 
         for (int v = 1; v <= 9; v++) {
@@ -47,7 +44,6 @@ public class HiddenTriple implements LegalMove {
                     cells.add(cell);
                 }
             }
-            // Hidden triple candidates must appear in 2–3 cells
             if (cells.size() >= 2 && cells.size() <= 3) {
                 positions.put(v, cells);
             }
@@ -68,7 +64,6 @@ public class HiddenTriple implements LegalMove {
                     union.addAll(positions.get(v2));
                     union.addAll(positions.get(v3));
 
-                    // exactly three cells → hidden triple
                     if (union.size() != 3) continue;
 
                     Set<Integer> allowed = Set.of(v1, v2, v3);

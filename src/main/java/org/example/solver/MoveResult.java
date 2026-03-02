@@ -19,15 +19,9 @@ public record MoveResult(
 
     public enum Type { PLACEMENT, CANDIDATE_REMOVAL, CANDIDATE_RESTRICTION, COMPOSITE }
 
-    // Factory methods stay inside the record
     public static MoveResult placement(String tech, Cell cell, int value) {
         return new MoveResult(tech, Type.PLACEMENT, cell, value, null,
                 "Placed " + value + " at (" + cell.getRow() + "," + cell.getCol() + ")");
-    }
-
-    public static MoveResult candidateRemoved(String tech, Cell cell, int value) {
-        return new MoveResult(tech, Type.CANDIDATE_REMOVAL, cell, value, null,
-                "Removed " + value + " from (" + cell.getRow() + "," + cell.getCol() + ")");
     }
 
     public static MoveResult restrictedTo(String tech, Cell cell, Set<Integer> allowed) {
